@@ -1,0 +1,365 @@
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+
+import { AiChatWidget } from "@/components/ai-chat-widget";
+import { PageSkeleton, usePreload } from "@/components/skeleton";
+import { getProperty, properties } from "@/lib/properties";
+
+export const Route = createFileRoute("/property/$id")({
+  loader: ({ params }) => {
+    const property = getProperty(params.id);
+    if (!property) throw notFound();
+    return { property };
+  },
+  head: ({ loaderData }) => {
+    if (!loaderData) {
+      return {
+        meta: [
+          { title: "Property not found | Property Mogul" },
+          { name: "robots", content: "noindex" },
+        ],
+      };
+    }
+
+    const { property } = loaderData;
+    return {
+      meta: [
+        { title: `${property.title} | Property Mogul` },
+        {
+          name: "description",
+          content: property.description?.slice(0, 155) ?? "Property listing.",
+        },
+        { property: "og:title", content: `${property.title} | Property Mogul` },
+        {
+          property: "og:description",
+          content: property.description?.slice(0, 155) ?? "Property listing.",
+        },
+        { property: "og:image", content: property.images?.[0] },
+        { property: "og:type", content: "product" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: property.images?.[0] },
+      ],
+      links: [{ rel: "canonical", href: `/property/${property.id}` }],
+    };
+  },
+  component: PropertyDetailPage,
+});
+
+function PropertyDetailPage() {
+  const ready = usePreload(400);
+  const { property } = Route.useLoaderData();
+
+  const [tab, setTab] = useState("description");
+  const [activeImage, setActiveImage] = useState(0);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  const others = useMemo(
+    () => properties.filter((p) => p.id !== property.id).slice(0, 3),
+    [property.id],
+  );
+
+  useEffect(() => {
+    setActiveImage(0);
+  }, [property.id]);
+
+  const images = property.images ?? [];
+
+  if (!ready) return <PageSkeleton />;
+
+  return (
+    <div className="min-h-screen bg-background text-on-surface flex flex-col">
+      <header className="fixed top-0 inset-x-0 z-50 bg-surface-glass backdrop-blur-xl border-b border-border-muted">
+        <div className="max-w-[1400px] mx-auto flex justify-between items-center px-5 md:px-16 py-4 gap-4">
+          <Link to="/" className="font-display font-bold text-primary">
+            Property Mogul
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-6">
+            <Link to="/browse" className="text-on-surface-variant hover:text-primary transition-colors">
+              Properties
+            </Link>
+            <a className="text-on-surface-variant hover:text-primary transition-colors" href="#">
+              Agents
+            </a>
+            <a className="text-on-surface-variant hover:text-primary transition-colors" href="#">
+              Resources
+            </a>
+          </nav>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setChatOpen(true)}
+              aria-label="Assistant"
+              className="p-2 rounded-lg text-on-surface-variant hover:text-primary transition-colors"
+            >
+              <span className="material-symbols-outlined">smart_toy</span>
+            </button>
+
+            <Link to="/browse" className="hidden md:inline-flex text-on-surface-variant hover:text-primary transition-colors">
+              Browse
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <main className="pt-24 pb-20 px-5 md:px-16 max-w-[1400px] mx-auto w-full flex-1">
+        <div className="mb-6">
+          <Link to="/browse" className="text-on-surface-variant hover:text-primary transition-colors">
+            Back to browse
+          </Link>
+        </div>
+
+        <div className="mb-10 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] md:items-end gap-6">
+          <div className="min-w-0">
+            <div className="flex gap-2 mb-4 flex-wrap">
+              {property.tags?.map((t) => (
+                <span
+                  key={t.label}
+                  className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border ${
+                    t.tone === "success"
+                      ? "bg-success-cyan/10 border-success-cyan text-success-cyan"
+                      : "bg-primary/10 border-primary text-primary-container"
+                  }`}
+                >
+                  {t.label}
+                </span>
+              ))}
+              <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border border-white/10 bg-background/60">
+                {property.category}
+              </span>
+            </div>
+
+            <h1 className="font-display font-bold text-3xl sm:text-5xl mb-2 tracking-tight">{property.title}</h1>
+
+            <div className="flex items-center gap-2 text-on-surface-variant min-w-0">
+              <span className="truncate">{property.address}</span>
+            </div>
+          </div>
+
+          <div className="flex gap-3 shrink-0">
+            <div className="glass-panel p-4 rounded-xl text-center min-w-[120px]">
+              <p className="text-[10px] tracking-widest uppercase text-on-surface-variant mb-1">Price</p>
+              <p className="font-mono-data text-xl text-primary-container font-bold">{property.price}</p>
+              <p className="text-[10px] text-on-surface-variant mt-0.5">{property.priceUnit}</p>
+            </div>
+            <div className="glass-panel p-4 rounded-xl text-center min-w-[120px]">
+              <p className="text-[10px] tracking-widest uppercase text-on-surface-variant mb-1">Total Units</p>
+              <p className="font-mono-data text-xl text-primary-container font-bold">{property.totalUnits}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8 space-y-6 min-w-0">
+            <div className="grid grid-cols-4 grid-rows-2 gap-3 h-[320px] md:h-[520px]">
+              <button
+                type="button"
+                onClick={() => setActiveImage(0)}
+                className="col-span-4 md:col-span-3 row-span-2 relative overflow-hidden rounded-2xl group cursor-pointer"
+              >
+                <img
+                  alt={property.title}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  src={images[activeImage] ?? images[0]}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              </button>
+
+              {images.slice(0, 2).map((img, i) => (
+                <button
+                  key={img}
+                  type="button"
+                  onClick={() => setActiveImage(i)}
+                  className={`hidden md:block col-span-1 row-span-1 relative overflow-hidden rounded-2xl group cursor-pointer border-2 transition-colors ${
+                    activeImage === i ? "border-primary-container" : "border-transparent"
+                  }`}
+                >
+                  <img
+                    alt={`${property.title} view ${i + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    src={img}
+                  />
+                  {i === 1 && images.length > 2 && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <span className="font-bold text-white">+{images.length - 2} Photos</span>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="glass-panel p-6 sm:p-8 rounded-2xl">
+              <div className="flex gap-6 border-b border-border-muted mb-6 overflow-x-auto">
+                {[
+                  ["description", "Description"],
+                  ["features", "Features"],
+                  ["floor", "Floor Plans"],
+                ].map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setTab(key)}
+                    className={`pb-3 whitespace-nowrap font-bold transition-colors ${
+                      tab === key
+                        ? "text-primary-container border-b-2 border-primary-container"
+                        : "text-on-surface-variant hover:text-on-surface"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {tab === "description" && (
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-bold">Reimagining Urban Living</h2>
+                  <p className="text-on-surface-variant leading-relaxed">{property.description}</p>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-4">
+                    {[
+                      ["YEAR BUILT", String(property.yearBuilt)],
+                      ["TOTAL UNITS", String(property.totalUnits)],
+                      ["PET FRIENDLY", property.petFriendly],
+                      ["CERTIFICATION", property.certification],
+                    ].map(([label, value]) => (
+                      <div key={label} className="flex flex-col">
+                        <span className="text-[10px] tracking-widest uppercase text-on-surface-variant">{label}</span>
+                        <span className="font-mono-data text-on-surface">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {tab === "features" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {property.specs?.map((s) => (
+                    <div key={s.label} className="flex items-center gap-3 p-4 rounded-xl bg-surface-container border border-border-muted">
+                      <span>{s.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {tab === "floor" && (
+                <div className="text-center py-12 text-on-surface-variant">
+                  <p className="font-bold">Floor plans available on tour</p>
+                  <p className="text-sm mt-1">Schedule a visit to view detailed plans.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="glass-panel p-6 sm:p-8 rounded-2xl">
+              <h3 className="text-2xl font-bold mb-4">Neighborhood Insight</h3>
+              <div className="w-full h-72 rounded-xl overflow-hidden relative bg-surface-container-high">
+                <iframe
+                  title="Map"
+                  className="w-full h-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://www.google.com/maps?q=${encodeURIComponent(property.address)}&output=embed`}
+                />
+              </div>
+              <div className="mt-4 flex items-center gap-2 text-sm text-on-surface-variant">
+                Traffic Score: <span className="text-on-surface font-bold">85</span> (Commuter's Hub)
+              </div>
+            </div>
+          </div>
+
+          <aside className="lg:col-span-4 space-y-6">
+            <div className="glass-panel p-6 sm:p-8 rounded-2xl border-primary-container/20">
+              <h3 className="text-xl font-bold mb-5">Take the Next Step</h3>
+              <div className="space-y-3">
+                <button type="button" className="w-full py-3.5 rounded-xl font-bold text-on-primary bg-gradient-to-r from-primary-container to-secondary hover:brightness-110 active:scale-[0.99] transition">
+                  Schedule a Tour
+                </button>
+                <button type="button" className="w-full py-3.5 rounded-xl font-bold text-primary-container border border-primary-container hover:bg-primary-container/10 active:scale-[0.99] transition">
+                  Apply to Rent
+                </button>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-border-muted">
+                <p className="text-[10px] tracking-widest uppercase text-on-surface-variant mb-3">Contact Owner</p>
+                <div className="flex items-start gap-3 mb-5">
+                  <div className="w-12 h-12 shrink-0 rounded-full bg-surface-container-high flex items-center justify-center border border-border-muted" />
+                  <div className="min-w-0">
+                    <p className="font-bold truncate">{property.owner?.name}</p>
+                    <p className="text-xs text-on-surface-variant">{property.owner?.title}</p>
+                    <a href={`tel:${property.owner?.phone}`} className="text-xs text-primary-container hover:underline block truncate">
+                      {property.owner?.phone}
+                    </a>
+                    <a href={`mailto:${property.owner?.email}`} className="text-xs text-on-surface-variant hover:text-primary-container block truncate">
+                      {property.owner?.email}
+                    </a>
+                  </div>
+                </div>
+
+                <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
+                  <input required value={""} onChange={() => {}} className="hidden" readOnly />
+                  <button type="button" className="w-full py-3 bg-surface-container-highest hover:bg-surface-variant transition-colors font-bold rounded-xl">
+                    Send Message
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <div className="glass-panel p-6 rounded-2xl space-y-3">
+              <h4 className="text-[10px] tracking-widest uppercase text-on-surface-variant">Quick Links</h4>
+              {[
+                { title: "Floor Plans & Pricing", sub: "Available Models" },
+                { title: "Neighborhood Guide", sub: "Local amenities" },
+                { title: "Owner Documents", sub: "Verified paperwork" },
+              ].map((q) => (
+                <button
+                  key={q.title}
+                  type="button"
+                  className="w-full flex items-center justify-between p-4 bg-surface-container rounded-xl hover:bg-surface-container-high transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <p className="font-medium">{q.title}</p>
+                      <p className="text-xs text-on-surface-variant">{q.sub}</p>
+                    </div>
+                  </div>
+                  <span className="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                </button>
+              ))}
+            </div>
+          </aside>
+        </div>
+
+        <section className="mt-16">
+          <h2 className="font-display font-bold text-2xl sm:text-3xl mb-6">Similar properties</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {others.map((p) => (
+              <div key={p.id} className="bg-surface-container-lowest rounded-2xl overflow-hidden border border-border-muted">
+                <div className="h-48 overflow-hidden">
+                  <img src={p.images?.[0]} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                </div>
+                <div className="p-5">
+                  <h3 className="font-bold mb-1 group-hover:text-primary-container transition-colors">{p.title}</h3>
+                  <p className="text-sm text-on-surface-variant truncate">{p.location}</p>
+                  <p className="mt-3 font-mono-data text-primary-container font-bold">{p.price}</p>
+                  <div className="mt-4">
+                    <Link to="/property/$id" params={{ id: p.id }} className="inline-flex items-center gap-2 text-primary-container hover:underline">
+                      View
+                      <span className="material-symbols-outlined">open_in_new</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <footer className="w-full bg-surface-container-lowest border-t border-border-muted py-8 px-5 md:px-16 text-center text-sm text-on-surface-variant">
+        © 2026 Property Mogul. Premium Real Estate Search.
+      </footer>
+
+      <AiChatWidget open={chatOpen} onOpenChange={setChatOpen} />
+    </div>
+  );
+}
+
