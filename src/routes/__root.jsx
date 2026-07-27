@@ -8,10 +8,9 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, ReactNode } from "react";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
@@ -23,7 +22,7 @@ function NotFoundComponent() {
           The page you're looking for doesn't exist or has been moved.
         </p>
         <div className="mt-6">
-          
+          <Link to="/" className="text-primary-container hover:underline">
             Go home
           </Link>
         </div>
@@ -32,11 +31,11 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error; reset: () => void }) {
+function ErrorComponent({ error, reset }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    console.error("Boundary error:", error);
   }, [error]);
 
   return (
@@ -58,19 +57,21 @@ function ErrorComponent({ error, reset }: { error; reset: () => void }) {
           >
             Try again
           </button>
-          <a
-            href="/"
+          <Link
+            to="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Go home
-          </a>
+          </Link>
         </div>
       </div>
     </div>
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient }>()({
+const queryClient = new QueryClient();
+
+export const Route = createRootRouteWithContext()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -104,28 +105,12 @@ export const Route = createRootRouteWithContext<{ queryClient }>()({
       },
     ],
   }),
-  shellComponent,
-  component,
-  notFoundComponent,
-  errorComponent,
+  component: RootComponent,
+  notFoundComponent: NotFoundComponent,
+  errorComponent: ErrorComponent,
 });
 
 const themeInitScript = `(function(){try{var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){document.documentElement.classList.add('dark');}})();`;
-
-function RootShell({ children }: { children }) {
-  return (
-    <html lang="en">
-      <head>
-        
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
-      <body>
-        {children}
-        
-      </body>
-    </html>
-  );
-}
 
 function RouteProgress() {
   const isLoading = useRouterState({ select: (s) => s.isLoading || s.isTransitioning });
@@ -141,14 +126,21 @@ function RouteProgress() {
   );
 }
 
-function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
-
+function RootComponent({ children }) {
   return (
-    
-      
-      {/* Required: nested routes render here. Removing  breaks all child routes. */}
-      
-    </QueryClientProvider>
+    <html lang="en">
+      <head>
+        <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body>
+        <QueryClientProvider client={queryClient}>
+          <RouteProgress />
+          <Outlet />
+          {children}
+        </QueryClientProvider>
+        <Scripts />
+      </body>
+    </html>
   );
 }

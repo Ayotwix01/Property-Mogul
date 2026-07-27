@@ -21,18 +21,10 @@ export const Route = createFileRoute("/seeker")({
       },
     ],
   }),
-  component,
+  component: SeekerDashboard,
 });
 
-function Icon({
-  name,
-  className = "",
-  filled = false,
-}: {
-  name;
-  className?;
-  filled?;
-}) {
+function Icon({ name, className = "", filled = false }) {
   return (
     <span
       className={`material-symbols-outlined ${className}`}
@@ -71,21 +63,21 @@ function SeekerDashboard() {
     { label: "Matches / week", value: 12, icon: "auto_awesome", tone: "text-primary-container" },
   ];
 
-  if (!ready) return ;
+  if (!ready) return <PageSkeleton />;
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex flex-col">
       <header className="fixed top-0 inset-x-0 z-50 bg-surface-glass backdrop-blur-xl border-b border-border-muted">
         <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-4 px-5 md:px-16 py-4">
           <div className="flex items-center gap-4 sm:gap-8 min-w-0">
-            
+            <Link to="/" className="font-display font-bold text-primary">
               Property Mogul
             </Link>
             <nav className="hidden md:flex items-center gap-6">
-              
+              <Link to="/seeker" className="text-primary font-bold">
                 Dashboard
               </Link>
-              
+              <Link to="/browse" className="text-on-surface-variant hover:text-primary transition-colors">
                 Browse
               </Link>
               <a className="text-on-surface-variant hover:text-primary transition-colors" href="#saved">
@@ -102,9 +94,9 @@ function SeekerDashboard() {
               aria-label="Open assistant"
               className="p-2 rounded-lg text-on-surface-variant hover:text-primary transition-colors"
             >
-              
+              <Icon name="smart_toy" />
             </button>
-            
+            <ThemeToggle />
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-container to-secondary grid place-items-center text-on-primary-container font-bold text-sm">
               {name.charAt(0).toUpperCase()}
             </div>
@@ -126,7 +118,7 @@ function SeekerDashboard() {
           <div className="relative p-6 sm:p-10 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] items-center gap-6">
             <div className="min-w-0">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border border-primary-container/40 bg-primary-container/10 text-primary-container mb-4">
-                 Seeker Mode
+                <Icon name="home" /> Seeker Mode
               </span>
               <h1 className="font-display font-bold text-3xl sm:text-5xl mb-2 tracking-tight">
                 Welcome back, <span className="primary-gradient-text">{name}</span>
@@ -136,14 +128,17 @@ function SeekerDashboard() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3 shrink-0">
-              
-                 Browse listings
+              <Link
+                to="/browse"
+                className="inline-flex items-center gap-2 bg-primary-container text-on-primary px-5 py-3 rounded-xl font-bold hover:brightness-110 transition-all"
+              >
+                <Icon name="search" /> Browse listings
               </Link>
               <button
                 onClick={() => setChatOpen(true)}
                 className="inline-flex items-center gap-2 bg-surface-container border border-border-muted text-on-surface px-5 py-3 rounded-xl font-bold hover:border-primary-container transition-colors"
               >
-                 Ask Mogul AI
+                <Icon name="smart_toy" /> Ask Mogul AI
               </button>
             </div>
           </div>
@@ -157,7 +152,7 @@ function SeekerDashboard() {
               className="bg-surface-container-lowest border border-border-muted rounded-2xl p-5"
             >
               <div className="flex items-center justify-between mb-3">
-                
+                <Icon name={s.icon} className={s.tone} />
                 <span className="text-[10px] font-mono-data tracking-widest text-on-surface-variant">
                   THIS MONTH
                 </span>
@@ -175,13 +170,20 @@ function SeekerDashboard() {
               <h2 className="font-display font-bold text-2xl sm:text-3xl">Saved homes</h2>
               <p className="text-on-surface-variant text-sm">Your shortlist — ready when you are.</p>
             </div>
-            
-              View all →
+            <Link
+              to="/favorites"
+              className="text-primary-container hover:text-primary transition-colors font-bold text-sm"
+            >
+              View all &rarr;
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {saved.map((p) => (
-              
+              <Link
+                key={p.id}
+                to={"/property/" + p.id}
+                className="group bg-surface-container-lowest border border-border-muted rounded-2xl overflow-hidden hover:border-primary-container/40 transition-all flex flex-col"
+              >
                 <div className="relative h-48 overflow-hidden">
                   <img
                     src={p.images[0]}
@@ -189,7 +191,7 @@ function SeekerDashboard() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute top-3 right-3 bg-background/60 backdrop-blur-md p-2 rounded-full text-primary-container">
-                    
+                    <Icon name="favorite" />
                   </div>
                 </div>
                 <div className="p-5 flex-1 flex flex-col gap-2">
@@ -200,7 +202,7 @@ function SeekerDashboard() {
                     </span>
                   </div>
                   <p className="text-sm text-on-surface-variant flex items-center gap-1 min-w-0">
-                    
+                    <Icon name="location_on" />
                     <span className="truncate">{p.location}</span>
                   </p>
                 </div>
@@ -223,7 +225,11 @@ function SeekerDashboard() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {recommended.map((p) => (
-              
+              <Link
+                key={p.id}
+                to={"/property/" + p.id}
+                className="flex items-center gap-4 p-4 bg-surface-container-lowest border border-border-muted rounded-2xl hover:border-primary-container/40 transition-all"
+              >
                 <img
                   src={p.images[0]}
                   alt={p.title}
@@ -239,7 +245,7 @@ function SeekerDashboard() {
                       {p.price}
                     </span>
                     <span className="text-xs text-on-surface-variant">
-                      {p.beds} bd · {p.baths} ba
+                      {p.beds} bd &middot; {p.baths} ba
                     </span>
                   </div>
                 </div>
@@ -260,7 +266,7 @@ function SeekerDashboard() {
                 className="flex items-center gap-4 p-5 bg-surface-container-lowest border border-border-muted rounded-2xl"
               >
                 <div className="w-14 h-14 rounded-xl bg-primary-container/10 border border-primary-container/30 grid place-items-center text-primary-container shrink-0">
-                  
+                  <Icon name="event" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-bold truncate">{t.property.title}</p>
@@ -282,10 +288,10 @@ function SeekerDashboard() {
       </main>
 
       <footer className="border-t border-border-muted py-8 text-center text-sm text-on-surface-variant">
-        © 2026 Property Mogul — Seeker experience.
+        &copy; 2026 Property Mogul &mdash; Seeker experience.
       </footer>
 
-       setChatOpen(false)} />
+      <AiChatWidget open={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   );
 }

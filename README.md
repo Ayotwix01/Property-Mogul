@@ -1,39 +1,39 @@
-# My Contribution Hub
+# Property Mogul
 
-A modern real estate property browsing and management application built with React, TanStack Start, and TypeScript.
-
-> **Live Demo:** https://gideonknight29-my-contribution-ll8hgiur4.vercel.app
+A full-featured real estate property discovery platform built with React and TanStack Start. Browse listings, manage favorites, search by location and property type, and get AI-powered property recommendations.
 
 ## Overview
 
-My Contribution Hub is a full-featured property discovery platform that allows users to browse listings, manage favorites, search by location and property type, and interact with an AI assistant for property recommendations.
+Property Mogul lets users explore residential and commercial properties with advanced filtering, save favorites, view property details, and interact with an AI assistant for personalized recommendations. Built for the Nigerian real estate market with a modern, responsive UI.
 
 ## Features
 
-- 🏠 **Property Browse** - Explore residential and commercial properties with advanced filtering
-- ❤️ **Favorites Management** - Save your favorite listings for quick access
-- 🔍 **Smart Search & Filters** - Filter by location, price, bedrooms, property type, and more
-- 💬 **AI Chat Assistant** - Get property recommendations and answers to real estate questions
-- 📱 **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
-- 🌙 **Dark Mode** - Easy on the eyes with built-in dark theme support
-- ⚡ **Fast Performance** - Optimized loading with lazy image rendering and efficient routing
+- 🏠 **Property Browse** — Explore residential and commercial properties with advanced filtering and pagination
+- ❤️ **Favorites Management** — Save and manage your favorite listings
+- 🔍 **Smart Search & Filters** — Filter by location, price range, bedrooms, property type, and sort options
+- 💬 **AI Chat Assistant** — Get property recommendations and answers to real estate questions
+- 📱 **Responsive Design** — Seamless experience on desktop, tablet, and mobile
+- 🌙 **Dark Mode** — Built-in dark theme support with system preference detection
+- ⚡ **Fast Performance** — Optimized with lazy image loading, skeleton screens, and efficient routing
+- 🗺️ **Owner & Seeker Dashboards** — Role-based views for property owners and seekers
 
 ## Tech Stack
 
-- **Frontend Framework**: React 19
-- **Router**: TanStack Start
+- **Frontend**: React 19
+- **Router**: TanStack Start (file-based routing)
 - **Styling**: Tailwind CSS v4
-- **Component Library**: shadcn/ui
+- **UI Library**: shadcn/ui components
 - **Build Tool**: Vite
-- **Language**: JavaScript (converted from TypeScript)
-- **AI Chat**: Integrated chatbot for property assistance
+- **Language**: JavaScript (JSX)
+- **Icons**: Material Symbols
+- **Form Validation**: Zod + TanStack Zod Adapter
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ 
-- pnpm (or npm/yarn)
+- Node.js 18+
+- npm (or pnpm, yarn)
 
 ### Installation
 
@@ -43,10 +43,10 @@ git clone https://github.com/gideonknight29/my-contribution-hub.git
 cd my-contribution-hub
 
 # Install dependencies
-pnpm install
+npm install
 
 # Start development server
-pnpm dev
+npm run dev
 ```
 
 The app will start at `http://localhost:5173`
@@ -55,71 +55,67 @@ The app will start at `http://localhost:5173`
 
 ```
 src/
-├── routes/            # File-based routing (TanStack Start convention)
-│   ├── __root.jsx     # Root layout component
-│   ├── index.jsx      # Home page
-│   ├── browse.jsx     # Property browse page
-│   └── ...
-├── components/        # Reusable React components
-├── lib/              # Utility functions and helpers
-│   ├── utils.js      # Common utilities
-│   └── chat.functions.js  # AI chat logic
-├── styles/           # Global styles
-└── server.js         # Server-side functions
+├── routes/             # File-based routes (TanStack Start convention)
+│   ├── __root.jsx      # Root layout with error/not-found boundaries
+│   ├── index.jsx       # Home / landing page
+│   ├── browse.jsx      # Property browse with filters & pagination
+│   ├── favorites.jsx   # Saved properties
+│   ├── login.jsx       # Sign in page
+│   ├── signup.jsx      # Registration page
+│   ├── seeker.jsx      # Seeker dashboard
+│   ├── owner.jsx       # Owner dashboard
+│   ├── property.$id.jsx # Property detail view
+│   ├── resources.jsx   # Real estate guides & resources
+│   └── role-select.jsx # Role selection flow
+├── components/         # Reusable UI components (shadcn/ui based)
+│   ├── ai-chat-widget.jsx  # AI assistant chat interface
+│   ├── skeleton.jsx        # Loading skeletons
+│   ├── theme-toggle.jsx    # Dark/light mode toggle
+│   └── ui/                 # shadcn/ui component primitives
+├── hooks/              # Custom React hooks
+│   ├── use-auth.js
+│   └── use-mobile.jsx
+├── lib/                # Utilities and helpers
+│   ├── chat.functions.js   # AI chat logic
+│   ├── error-capture.js    # Client-side error handling
+│   ├── error-page.js       # Error page renderer
+│   ├── properties.js       # Property data and utilities
+│   └── utils.js            # Common helper functions
+└── server.js           # Server entry with SSR error handling
 ```
 
 ## Key Pages
 
-- **`/`** - Home page with featured properties and quick search
-- **`/browse`** - Property listing with filters, search, and pagination
-- **`/favorites`** - User's saved favorite properties
-- **`/resources`** - Real estate resources and guides
+| Route | Page | Description |
+|-------|------|-------------|
+| `/` | Home | Landing page with featured properties and quick search |
+| `/browse` | Browse | Full property listing with filters, sort, and pagination |
+| `/favorites` | Favorites | User's saved property collection |
+| `/property/:id` | Property Detail | Full property details, images, specs, and contact |
+| `/seeker` | Seeker Dashboard | Personalized dashboard for property seekers |
+| `/owner` | Owner Dashboard | Dashboard for property owners to manage listings |
+| `/resources` | Resources | Real estate guides, articles, and market insights |
+| `/login` | Login | Sign in to existing account |
+| `/signup` | Sign Up | Create a new account |
+| `/role-select` | Role Select | Choose between owner/seeker flow |
 
-## Recent Changes
-
-- ✅ Converted entire codebase from TypeScript to JavaScript
-- ✅ Removed TypeScript dependencies while maintaining full functionality
-- ✅ Updated build configuration for JavaScript projects
-- ✅ All React components, routing, and features remain fully operational
-
-## Development
-
-### Build for Production
-
-```bash
-pnpm build
-```
-
-### Run Tests
+## Building for Production
 
 ```bash
-pnpm test
+npm run build
 ```
 
-### Lint Code
-
-```bash
-pnpm lint
-```
+Output is in the `.output` directory, ready for deployment to any Node.js hosting (Vercel, Netlify, etc.).
 
 ## Deployment
 
-This project is deployed on [Vercel](https://vercel.com). Any push to the `main` branch automatically triggers a production deployment.
-
-**Production URL**: https://gideonknight29-my-contribution-ll8hgiur4.vercel.app
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+The project is configured for Vercel deployment via `vercel.json`. Push to the `main` branch to trigger automatic production deployment.
 
 ## License
 
-This project is open source and available under the MIT License.
-
-## Support
-
-For issues, feature requests, or questions, please open an issue in the repository.
+MIT — see LICENSE for details.
 
 ---
 
-Built with ❤️ using React and TanStack Start
+Built with React, TanStack Start, and Tailwind CSS.
+

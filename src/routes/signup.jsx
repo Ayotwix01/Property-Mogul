@@ -22,7 +22,7 @@ export const Route = createFileRoute("/signup")({
   component,
 });
 
-function Icon({ name, className = "" }: { name; className? }) {
+function Icon({ name, className = "" }) {
   return (
     <span
       className={`material-symbols-outlined ${className}`}
@@ -41,7 +41,7 @@ function SignupPage() {
 
   const roleLabel = role === "owner" ? "Property Owner" : role === "seeker" ? "Property Seeker" : null;
 
-  const handleSubmit = (e.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     try {
       if (role) localStorage.setItem("pm_role", role);
@@ -56,13 +56,13 @@ function SignupPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="flex items-center justify-between px-4 sm:px-8 h-16 border-b border-border-muted">
-        
+        <Link to="/" className="flex items-center gap-3">
           <div className="w-8 h-8 shrink-0 rounded-lg bg-gradient-to-br from-primary-container to-secondary flex items-center justify-center">
-            
+            <Icon name="real_estate_agent" />
           </div>
           <span className="font-display font-bold text-lg truncate">Property Mogul</span>
         </Link>
-        
+        <ThemeToggle />
       </header>
 
       <main className="flex-1 flex items-center justify-center px-4 py-12 relative overflow-hidden">
@@ -73,7 +73,7 @@ function SignupPage() {
           {!role && (
             <div className="mb-6 rounded-xl border border-border-muted bg-surface-container p-4 text-sm text-on-surface-variant">
               Not sure yet?{" "}
-              
+              <Link to="/role-select" className="text-primary-container hover:underline">
                 Pick your role
               </Link>{" "}
               first for a tailored experience.
@@ -185,7 +185,7 @@ function SignupPage() {
 
           <p className="text-center text-sm text-on-surface-variant mt-8">
             Already have an account?{" "}
-            
+            <Link to="/login" className="text-primary-container hover:text-primary transition-colors">
               Sign in
             </Link>
           </p>

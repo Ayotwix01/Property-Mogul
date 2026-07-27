@@ -3,11 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
-type ServerEntry = {
-  fetch: (request, env, ctx) => Promise | Response;
-};
-
-let serverEntryPromise | undefined;
+let serverEntryPromise;
 
 async function getServerEntry() {
   if (!serverEntryPromise) {
@@ -37,8 +33,8 @@ async function normalizeCatastrophicSsrResponse(response) {
 
 function isH3SwallowedErrorBody(body) {
   try {
-    const payload = JSON.parse(body){ unhandled?; message? };
-    return payload.unhandled === true && payload.message === "HTTPError";
+    const payload = JSON.parse(body);
+    return payload && payload.unhandled === true && payload.message === "HTTPError";
   } catch {
     return false;
   }
