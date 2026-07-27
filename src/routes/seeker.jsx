@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AiChatWidget } from "@/components/ai-chat-widget";
 import { properties } from "@/lib/properties";
 import { PageSkeleton, usePreload } from "@/components/skeleton";
+import { useRole, switchRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/seeker")({
   head: () => ({
@@ -37,8 +38,18 @@ function Icon({ name, className = "", filled = false }) {
 
 function SeekerDashboard() {
   const ready = usePreload(500);
+  const roleState = useRole();
+  const navigate = useNavigate();
   const [name, setName] = useState("Explorer");
   const [chatOpen, setChatOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Role guard: redirect if not seeker
+  useEffect(() => {
+    if (ready && roleState.isSeeker === false && roleState.roles.length > 0) {
+      navigate({ to: "/role-select" });
+    }
+  }, [ready, roleState, navigate]);
 
   useEffect(() => {
     try {
@@ -48,6 +59,11 @@ function SeekerDashboard() {
       // ignore
     }
   }, []);
+
+  if (!ready) return <PageSkeleton />;
+
+  // Still show loading while checking role
+  if (roleState.roles.length > 0 && !roleState.isSeeker) return <PageSkeleton />;
 
   const saved = properties.slice(0, 3);
   const recommended = properties.slice(3, 7);
@@ -62,8 +78,6 @@ function SeekerDashboard() {
     { label: "Messages", value: 4, icon: "chat", tone: "text-primary" },
     { label: "Matches / week", value: 12, icon: "auto_awesome", tone: "text-primary-container" },
   ];
-
-  if (!ready) return <PageSkeleton />;
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex flex-col">
@@ -89,6 +103,19 @@ function SeekerDashboard() {
             </nav>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Role switch button — only visible if user has BOTH roles */}
+            {roleState.isBoth && (
+              <button
+                onClick={() => { switchRole(); navigate({ to: "/owner" }); }}
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container/10 border border-primary-container/30 text-primary-container text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all"
+                type="button"
+                title="Switch to Owner view"
+              >
+                <span className="material-symbols-outlined text-sm">swap_horiz</span>
+                Owner View
+              </button>
+            )}
+
             <button
               onClick={() => setChatOpen(true)}
               aria-label="Open assistant"
@@ -97,12 +124,75 @@ function SeekerDashboard() {
               <Icon name="smart_toy" />
             </button>
             <ThemeToggle />
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-container to-secondary grid place-items-center text-on-primary-container font-bold text-sm">
+
+            <button
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open menu"
+              className="md:hidden w-9 h-9 rounded-full bg-gradient-to-br from-primary-container to-secondary grid place-items-center text-on-primary-container font-bold text-sm"
+              type="button"
+            >
+              <span className="material-symbols-outlined">menu</span>
+            </button>
+
+            <div className="hidden md:grid w-9 h-9 rounded-full bg-gradient-to-br from-primary-container to-secondary place-items-center text-on-primary-container font-bold text-sm">
               {name.charAt(0).toUpperCase()}
             </div>
           </div>
         </div>
       </header>
+
+      {menuOpen && (
+        <div className="fixed inset-0 z-[60] md:hidden">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
+          <div className="absolute right-0 top-0 h-full w-72 bg-surface-container-lowest border-l border-border-muted p-6 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <span className="font-display font-bold text-primary">Menu</span>
+              <button onClick={() => setMenuOpen(false)} aria-label="Close menu" type="button">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3 pb-4 border-b border-border-muted">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-secondary grid place-items-center text-on-primary-container font-bold">
+                {name.charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold truncate">{name}</p>
+                <p className="text-xs text-on-surface-variant">Property Seeker</p>
+              </div>
+            </div>
+
+            <nav className="flex flex-col gap-1">
+              <Link to="/seeker" onClick={() => setMenuOpen(false)} className="py-2 font-bold text-primary">
+                Dashboard
+              </Link>
+              <Link to="/browse" onClick={() => setMenuOpen(false)} className="py-2 text-on-surface-variant hover:text-primary transition-colors">
+                Browse
+              </Link>
+              <a href="#saved" onClick={() => setMenuOpen(false)} className="py-2 text-on-surface-variant hover:text-primary transition-colors">
+                Saved
+              </a>
+              <a href="#tours" onClick={() => setMenuOpen(false)} className="py-2 text-on-surface-variant hover:text-primary transition-colors">
+                Tours
+              </a>
+            </nav>
+
+            {/* Role switch in mobile menu */}
+            {roleState.isBoth && (
+              <div className="mt-2 pt-4 border-t border-border-muted">
+                <button
+                  onClick={() => { setMenuOpen(false); switchRole(); navigate({ to: "/owner" }); }}
+                  className="flex items-center gap-3 py-3 px-3 rounded-lg text-primary-container font-bold hover:bg-primary-container/10 transition-colors w-full text-left"
+                  type="button"
+                >
+                  <span className="material-symbols-outlined">swap_horiz</span>
+                  Switch to Owner View
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <main className="flex-1 pt-24 pb-16 max-w-[1400px] mx-auto w-full px-5 md:px-16">
         {/* Hero greeting */}
@@ -177,7 +267,7 @@ function SeekerDashboard() {
               View all &rarr;
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {saved.map((p) => (
               <Link
                 key={p.id}

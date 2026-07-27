@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AiChatWidget } from "@/components/ai-chat-widget";
 import { PageSkeleton, usePreload } from "@/components/skeleton";
 import { properties } from "@/lib/properties";
+import { useRole } from "@/hooks/use-auth";
 
 const browseSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -114,6 +115,7 @@ function BrowsePage() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const { favorites, toggle: toggleFav } = useFavorites();
+  const roleState = useRole();
 
   const [chatOpen, setChatOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -313,7 +315,7 @@ function BrowsePage() {
             >
               Property Mogul
             </Link>
-            <nav className="hidden md:flex items-center gap-6">
+<nav className="hidden md:flex items-center gap-6">
               <Link to="/browse" className={pathname === "/browse" ? "text-primary" : "text-on-surface-variant hover:text-primary"}>
                 Browse
               </Link>
@@ -327,9 +329,16 @@ function BrowsePage() {
                   )}
                 </span>
               </Link>
-              <Link to="/owner" className={pathname === "/owner" ? "text-primary" : "text-on-surface-variant hover:text-primary"}>
-                My Listings
-              </Link>
+              {roleState.isOwner && (
+                <Link to="/owner" className={pathname === "/owner" ? "text-primary" : "text-on-surface-variant hover:text-primary"}>
+                  My Listings
+                </Link>
+              )}
+              {roleState.isSeeker && (
+                <Link to="/seeker" className={pathname === "/seeker" ? "text-primary" : "text-on-surface-variant hover:text-primary"}>
+                  Dashboard
+                </Link>
+              )}
               <Link to="/resources" className={pathname === "/resources" ? "text-primary" : "text-on-surface-variant hover:text-primary"}>
                 Resources
               </Link>
@@ -356,8 +365,8 @@ function BrowsePage() {
               <span className="material-symbols-outlined">smart_toy</span>
             </button>
 
-            <Link to="/owner" className="hidden md:inline-flex items-center text-on-surface-variant hover:text-primary">
-              Dashboard
+<Link to="/owner" className="hidden md:inline-flex items-center text-on-surface-variant hover:text-primary">
+              {roleState.isOwner ? "Dashboard" : roleState.isSeeker ? "Seeker" : "Dashboard"}
             </Link>
 
             <button
@@ -406,13 +415,15 @@ function BrowsePage() {
               >
                 Favorites ({favorites.size})
               </Link>
-              <Link
-                to="/owner"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 py-3 px-3 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors"
-              >
-                My Listings
-              </Link>
+              {roleState.isOwner && (
+                <Link
+                  to="/owner"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 py-3 px-3 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors"
+                >
+                  My Listings
+                </Link>
+              )}
               <Link
                 to="/resources"
                 onClick={() => setMenuOpen(false)}
@@ -422,20 +433,33 @@ function BrowsePage() {
               </Link>
             </nav>
             <div className="mt-2 pt-4 border-t border-border-muted flex flex-col gap-2">
-              <Link
-                to="/seeker"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 py-3 px-3 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors"
-              >
-                Seeker Dashboard
-              </Link>
-              <Link
-                to="/owner"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 py-3 px-3 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors"
-              >
-                Owner Dashboard
-              </Link>
+              {roleState.isSeeker && (
+                <Link
+                  to="/seeker"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 py-3 px-3 rounded-lg text-primary-container font-bold hover:bg-primary-container/10 transition-colors"
+                >
+                  Seeker Dashboard
+                </Link>
+              )}
+              {roleState.isOwner && (
+                <Link
+                  to="/owner"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 py-3 px-3 rounded-lg text-primary-container font-bold hover:bg-primary-container/10 transition-colors"
+                >
+                  Owner Dashboard
+                </Link>
+              )}
+              {!roleState.isOwner && !roleState.isSeeker && (
+                <Link
+                  to="/role-select"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 py-3 px-3 rounded-lg text-primary-container font-bold hover:bg-primary-container/10 transition-colors"
+                >
+                  Get Started
+                </Link>
+              )}
               <button
                 onClick={() => {
                   setMenuOpen(false);

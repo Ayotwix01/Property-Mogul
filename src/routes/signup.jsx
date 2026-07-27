@@ -38,13 +38,28 @@ function SignupPage() {
   const navigate = useNavigate();
   const [show, setShow] = useState(false);
   const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
 
   const roleLabel = role === "owner" ? "Property Owner" : role === "seeker" ? "Property Seeker" : null;
 
+  const pwLength = password.length;
+  const pwHasUpper = /[A-Z]/.test(password);
+  const pwHasLower = /[a-z]/.test(password);
+  const pwHasNumber = /[0-9]/.test(password);
+  const pwValid = pwLength >= 8 && pwHasUpper && pwHasLower && pwHasNumber;
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!pwValid) return;
     try {
-      if (role) localStorage.setItem("pm_role", role);
+      if (role) {
+        // Merge role with any existing roles (supports dual-role)
+        const currentRole = localStorage.getItem("pm_role") || "";
+        const existing = currentRole ? currentRole.split(",").map((r) => r.trim().toLowerCase()) : [];
+        const merged = [...new Set([...existing, role])].join(",");
+        localStorage.setItem("pm_role", merged);
+      }
       if (name) localStorage.setItem("pm_user_name", name);
       localStorage.setItem("pm_authed", "1");
     } catch {
@@ -98,7 +113,7 @@ function SignupPage() {
                 Full name
               </label>
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container border border-border-muted focus-within:border-primary-container transition">
-                
+                <Icon name="person" className="text-on-surface-variant" />
                 <input
                   required
                   value={name}
@@ -114,10 +129,12 @@ function SignupPage() {
                 Email
               </label>
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container border border-border-muted focus-within:border-primary-container transition">
-                
+                <Icon name="email" className="text-on-surface-variant" />
                 <input
                   type="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   className="bg-transparent outline-none w-full text-on-surface placeholder:text-outline"
                 />
@@ -126,14 +143,16 @@ function SignupPage() {
 
             <div>
               <label className="block text-xs font-label-caps text-on-surface-variant mb-2">
-                Password
+                Password <span className="text-on-surface-variant font-mono-data">({pwLength})</span>
               </label>
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container border border-border-muted focus-within:border-primary-container transition">
-                
+                <Icon name="lock" className="text-on-surface-variant" />
                 <input
                   type={show ? "text" : "password"}
                   required
                   minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 8 characters"
                   className="bg-transparent outline-none w-full text-on-surface placeholder:text-outline"
                 />
@@ -142,8 +161,24 @@ function SignupPage() {
                   onClick={() => setShow(!show)}
                   className="text-on-surface-variant hover:text-on-surface"
                 >
-                  
+                  <Icon name={show ? "visibility_off" : "visibility"} />
                 </button>
+              </div>
+              {/* Password requirements checklist */}
+              <div className="mt-2 space-y-1">
+                {[
+                  { ok: pwLength >= 8, label: "At least 8 characters" },
+                  { ok: pwHasUpper, label: "One uppercase letter" },
+                  { ok: pwHasLower, label: "One lowercase letter" },
+                  { ok: pwHasNumber, label: "One number" },
+                ].map((r) => (
+                  <div key={r.label} className={`flex items-center gap-1.5 text-xs ${r.ok ? "text-success-cyan" : "text-on-surface-variant"}`}>
+                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: `'FILL' ${r.ok ? 1 : 0}, 'wght' 500` }}>
+                      {r.ok ? "check_circle" : "radio_button_unchecked"}
+                    </span>
+                    {r.label}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -164,7 +199,8 @@ function SignupPage() {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-primary-container to-secondary text-on-primary py-3.5 rounded-xl font-bold cyan-glow hover:brightness-110 active:scale-[0.99] transition"
+              disabled={!pwValid}
+              className="w-full bg-gradient-to-r from-primary-container to-secondary text-on-primary py-3.5 rounded-xl font-bold cyan-glow hover:brightness-110 active:scale-[0.99] transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Create Account
             </button>
@@ -179,7 +215,7 @@ function SignupPage() {
               type="button"
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border-muted hover:bg-white/5 font-semibold text-sm"
             >
-               Sign up with Google
+              <Icon name="login" /> Sign up with Google
             </button>
           </form>
 

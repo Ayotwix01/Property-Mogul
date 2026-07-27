@@ -20,6 +20,52 @@ function LoginPage() {
   const navigate = useNavigate();
   const [emailOrUser, setEmailOrUser] = useState("");
   const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [loggingIn, setLoggingIn] = useState(false);
+
+  const pwLength = password.length;
+  const pwHasUpper = /[A-Z]/.test(password);
+  const pwHasLower = /[a-z]/.test(password);
+  const pwHasNumber = /[0-9]/.test(password);
+  const pwValid = pwLength >= 8 && pwHasUpper && pwHasLower && pwHasNumber;
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (!pwValid || loggingIn) return;
+    setLoggingIn(true);
+
+    // Simulate login delay
+    setTimeout(() => {
+      try {
+        localStorage.setItem("pm_authed", "1");
+        // If the user's email contains "owner" they get owner+seeker roles (dual-role demo)
+        // Otherwise just seeker
+        const role = emailOrUser.toLowerCase().includes("owner")
+          ? "owner,seeker"
+          : "seeker";
+        localStorage.setItem("pm_role", role);
+        localStorage.setItem("pm_user_name", emailOrUser.split("@")[0]);
+      } catch {
+        // ignore
+      }
+
+      const roles = (() => {
+        try {
+          return localStorage.getItem("pm_role") || "";
+        } catch {
+          return "";
+        }
+      })();
+      const rList = roles.split(",").map((r) => r.trim());
+      if (rList.includes("owner")) {
+        navigate({ to: "/owner" });
+      } else if (rList.includes("seeker")) {
+        navigate({ to: "/seeker" });
+      } else {
+        navigate({ to: "/browse" });
+      }
+    }, 800);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -70,32 +116,7 @@ function LoginPage() {
               </p>
             </div>
 
-            <form
-              className="space-y-6"
-              onSubmit={(e) => {
-                e.preventDefault();
-
-                // Minimal demo auth (keeps the app structure intact)
-                try {
-                  localStorage.setItem("pm_authed", "1");
-                  localStorage.setItem("pm_role", emailOrUser.toLowerCase().includes("owner") ? "owner" : "seeker");
-                } catch {
-                  // ignore
-                }
-
-                const role = (() => {
-                  try {
-                    return localStorage.getItem("pm_role");
-                  } catch {
-                    return null;
-                  }
-                })();
-
-                navigate({
-                  to: role === "seeker" ? "/seeker" : role === "owner" ? "/owner" : "/browse",
-                });
-              }}
-            >
+            <form className="space-y-6" onSubmit={handleLogin}>
               <div className="space-y-5">
                 <div className="space-y-2">
                   <label
@@ -104,16 +125,19 @@ function LoginPage() {
                   >
                     Email or Username
                   </label>
-                  <input
-                    className="w-full bg-surface-container border border-border-muted rounded-lg py-4 pl-4 pr-4 text-on-surface focus:outline-none focus:border-primary-container/50 transition-all"
-                    id="email"
-                    name="email"
-                    placeholder="name@company.com"
-                    type="text"
-                    value={emailOrUser}
-                    onChange={(e) => setEmailOrUser(e.target.value)}
-                    autoComplete="username"
-                  />
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container border border-border-muted focus-within:border-primary-container transition">
+                    <span className="material-symbols-outlined text-on-surface-variant text-lg">person</span>
+                    <input
+                      className="bg-transparent outline-none w-full text-on-surface placeholder:text-outline"
+                      id="email"
+                      name="email"
+                      placeholder="name@company.com"
+                      type="text"
+                      value={emailOrUser}
+                      onChange={(e) => setEmailOrUser(e.target.value)}
+                      autoComplete="username"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -122,7 +146,7 @@ function LoginPage() {
                       className="font-label-caps text-[11px] tracking-widest text-on-surface-variant uppercase"
                       htmlFor="password"
                     >
-                      Password
+                      Password <span className="font-mono-data text-on-surface-variant">({pwLength})</span>
                     </label>
                     <a
                       href="#"
@@ -131,25 +155,61 @@ function LoginPage() {
                       Forgot Password?
                     </a>
                   </div>
-                  <input
-                    className="w-full bg-surface-container border border-border-muted rounded-lg py-4 pl-4 pr-4 text-on-surface focus:outline-none focus:border-primary-container/50 transition-all"
-                    id="password"
-                    name="password"
-                    placeholder="••••••••••••"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                  />
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container border border-border-muted focus-within:border-primary-container transition">
+                    <span className="material-symbols-outlined text-on-surface-variant text-lg">lock</span>
+                    <input
+                      className="bg-transparent outline-none w-full text-on-surface placeholder:text-outline"
+                      id="password"
+                      name="password"
+                      placeholder="••••••••••••"
+                      type={showPw ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPw(!showPw)}
+                      className="text-on-surface-variant hover:text-on-surface"
+                    >
+                      <span className="material-symbols-outlined text-lg">{showPw ? "visibility_off" : "visibility"}</span>
+                    </button>
+                  </div>
+                  {/* Password requirements checklist */}
+                  <div className="mt-2 space-y-1">
+                    {[
+                      { ok: pwLength >= 8, label: "At least 8 characters" },
+                      { ok: pwHasUpper, label: "One uppercase letter" },
+                      { ok: pwHasLower, label: "One lowercase letter" },
+                      { ok: pwHasNumber, label: "One number" },
+                    ].map((r) => (
+                      <div key={r.label} className={`flex items-center gap-1.5 text-xs ${r.ok ? "text-success-cyan" : "text-on-surface-variant"}`}>
+                        <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: `'FILL' ${r.ok ? 1 : 0}, 'wght' 500` }}>
+                          {r.ok ? "check_circle" : "radio_button_unchecked"}
+                        </span>
+                        {r.label}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               <button
-                className="w-full py-4 rounded-lg font-semibold text-lg text-on-primary bg-gradient-to-r from-primary-container to-secondary flex items-center justify-center gap-3 hover:brightness-110 active:scale-[0.99] transition-all"
+                disabled={!pwValid || loggingIn}
+                className="w-full py-4 rounded-lg font-semibold text-lg text-on-primary bg-gradient-to-r from-primary-container to-secondary flex items-center justify-center gap-3 hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 type="submit"
               >
-                Login
-                <span className="material-symbols-outlined">login</span>
+                {loggingIn ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Proceed
+                    <span className="material-symbols-outlined">login</span>
+                  </>
+                )}
               </button>
             </form>
 

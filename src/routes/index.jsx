@@ -130,22 +130,23 @@ function Landing() {
       <main className="pt-24">
         <section className="relative min-h-[80vh] py-16 flex flex-col items-center justify-center text-center px-4 sm:px-6 md:px-12 overflow-hidden">
           <div className="max-w-4xl z-10 space-y-6 sm:space-y-8">
-            <span className="inline-block px-4 py-1 rounded-full border border-primary-container/30 text-primary-container font-label-caps text-[11px] bg-surface-glass">
-              Simple • Secure • Global
+            <span className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full border border-primary-container/40 bg-primary-container/10 text-primary-container font-mono-data text-[11px] tracking-widest uppercase">
+              <span className="w-2 h-2 rounded-full bg-success-cyan animate-pulse" />
+              Premium Real Estate Marketplace
             </span>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl leading-tight tracking-tight">
               Modern <span className="primary-gradient-text">Real Estate</span>
               <br /> for Everyone
             </h1>
-            <p className="text-lg text-on-surface-variant max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-on-surface-variant max-w-2xl mx-auto">
               The smarter way to find your next home or list your property. We connect seekers,
               renters, and buyers with premium listings through a seamless digital experience.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-              <Link to="/browse" className="bg-primary-container text-on-primary-container px-10 py-3 rounded-xl font-bold hover:brightness-110 transition-all cyan-glow">
+              <Link to="/browse" className="bg-primary-container text-on-primary-container px-8 sm:px-10 py-3 rounded-xl font-bold hover:brightness-110 transition-all cyan-glow w-full sm:w-auto text-center">
                 Find a Home
               </Link>
-              <Link to="/role-select" className="px-10 py-3 rounded-xl border border-border-muted hover:bg-surface-container transition-all font-bold">
+              <Link to="/role-select" className="px-8 sm:px-10 py-3 rounded-xl border border-border-muted hover:bg-surface-container transition-all font-bold w-full sm:w-auto text-center">
                 List Your Property
               </Link>
             </div>

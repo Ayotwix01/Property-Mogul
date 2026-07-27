@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { AiChatWidget } from "@/components/ai-chat-widget";
 import { PageSkeleton, usePreload } from "@/components/skeleton";
 import { properties } from "@/lib/properties";
+import { useRole, switchRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/owner")({
   head: () => ({
@@ -26,9 +27,18 @@ export const Route = createFileRoute("/owner")({
 
 function OwnerDashboard() {
   const ready = usePreload(400);
+  const roleState = useRole();
+  const navigate = useNavigate();
   const [name, setName] = useState("Owner");
   const [chatOpen, setChatOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Role guard: redirect if not owner
+  useEffect(() => {
+    if (ready && roleState.isOwner === false && roleState.roles.length > 0) {
+      navigate({ to: "/role-select" });
+    }
+  }, [ready, roleState, navigate]);
 
   useEffect(() => {
     try {
@@ -40,6 +50,9 @@ function OwnerDashboard() {
   }, []);
 
   if (!ready) return <PageSkeleton />;
+
+  // Still show loading while checking role
+  if (roleState.roles.length > 0 && !roleState.isOwner) return <PageSkeleton />;
 
   const listings = properties.slice(0, 5);
   const inquiries = [
@@ -105,6 +118,19 @@ function OwnerDashboard() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Role switch button — only visible if user has BOTH roles */}
+            {roleState.isBoth && (
+              <button
+                onClick={() => { switchRole(); navigate({ to: "/seeker" }); }}
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container/10 border border-primary-container/30 text-primary-container text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all"
+                type="button"
+                title="Switch to Seeker view"
+              >
+                <span className="material-symbols-outlined text-sm">swap_horiz</span>
+                Seeker View
+              </button>
+            )}
+
             <button
               onClick={() => setChatOpen(true)}
               aria-label="Assistant"
@@ -165,6 +191,20 @@ function OwnerDashboard() {
                 Inquiries
               </a>
             </nav>
+
+            {/* Role switch in mobile menu */}
+            {roleState.isBoth && (
+              <div className="mt-2 pt-4 border-t border-border-muted">
+                <button
+                  onClick={() => { setMenuOpen(false); switchRole(); navigate({ to: "/seeker" }); }}
+                  className="flex items-center gap-3 py-3 px-3 rounded-lg text-primary-container font-bold hover:bg-primary-container/10 transition-colors w-full text-left"
+                  type="button"
+                >
+                  <span className="material-symbols-outlined">swap_horiz</span>
+                  Switch to Seeker View
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -194,9 +234,12 @@ function OwnerDashboard() {
             </div>
 
             <div className="flex flex-wrap gap-3 shrink-0">
-              <button type="button" className="inline-flex items-center gap-2 bg-primary-container text-on-primary-container px-5 py-3 rounded-xl font-bold active:scale-95 transition-transform">
+              <Link to="/browse"
+                className="inline-flex items-center gap-2 bg-primary-container text-on-primary-container px-5 py-3 rounded-xl font-bold active:scale-95 transition-transform"
+              >
+                <span className="material-symbols-outlined">add</span>
                 New listing
-              </button>
+              </Link>
               <Link to="/browse" className="inline-flex items-center gap-2 bg-surface-container border border-border-muted text-on-surface-variant px-5 py-3 rounded-xl font-bold hover:bg-on-surface hover:text-background transition-all">
                 View marketplace
               </Link>
@@ -269,9 +312,10 @@ function OwnerDashboard() {
               <h2 className="font-display font-bold text-2xl sm:text-3xl">My listings</h2>
               <p className="text-sm text-on-surface-variant">Manage, edit, and track performance.</p>
             </div>
-            <button type="button" className="inline-flex items-center gap-2 bg-primary-container/10 border border-primary-container/30 text-primary-container px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors">
+            <Link to="/browse" className="inline-flex items-center gap-2 bg-primary-container/10 border border-primary-container/30 text-primary-container px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors">
+              <span className="material-symbols-outlined">add</span>
               Add
-            </button>
+            </Link>
           </div>
 
           <div className="bg-surface-container-lowest border border-border-muted rounded-2xl overflow-hidden">
@@ -337,4 +381,3 @@ function OwnerDashboard() {
     </div>
   );
 }
-

@@ -56,7 +56,7 @@ const guides = [
   },
 ];
 
-function Icon({ name, className = "" }: { name; className? }) {
+function Icon({ name, className = "" }) {
   return (
     <span
       className={`material-symbols-outlined ${className}`}
@@ -73,12 +73,12 @@ function ResourcesPage() {
     <div className="min-h-screen bg-background text-on-surface flex flex-col">
       <header className="fixed top-0 inset-x-0 z-50 bg-surface-glass backdrop-blur-xl border-b border-border-muted">
         <div className="max-w-[1400px] mx-auto flex justify-between items-center px-5 md:px-16 py-4 gap-4">
-          
+          <Link to="/" className="font-display font-bold text-primary text-lg">
             Property Mogul
           </Link>
           <div className="flex items-center gap-3">
-            
-            
+            <ThemeToggle />
+            <Link to="/browse" className="text-on-surface-variant hover:text-primary transition-colors text-sm">
               Back to Browse
             </Link>
           </div>

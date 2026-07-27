@@ -21,7 +21,7 @@ export const Route = createFileRoute("/role-select")({
   component,
 });
 
-function Icon({ name, className = "" }: { name; className? }) {
+function Icon({ name, className = "" }) {
   return (
     <span
       className={`material-symbols-outlined ${className}`}
@@ -32,8 +32,6 @@ function Icon({ name, className = "" }: { name; className? }) {
   );
 }
 
-type Role = "owner" | "seeker";
-
 function RoleSelectPage() {
   const [role, setRole] = useState(null);
   const navigate = useNavigate();
@@ -41,20 +39,18 @@ function RoleSelectPage() {
   const proceed = () => {
     if (!role) return;
     try {
-      localStorage.setItem("pm_role", role);
+      // Store all selected roles (comma-separated for dual-role support)
+      const currentRole = localStorage.getItem("pm_role") || "";
+      const existing = currentRole ? currentRole.split(",").map((r) => r.trim().toLowerCase()) : [];
+      const merged = [...new Set([...existing, role])].join(",");
+      localStorage.setItem("pm_role", merged);
     } catch {
       // ignore storage errors
     }
     navigate({ to: "/signup", search: { role } });
   };
 
-  const roles: {
-    key;
-    title;
-    tagline;
-    icon;
-    bullets[];
-  }[] = [
+  const roles = [
     {
       key: "owner",
       title: "I'm a Property Owner",
@@ -82,13 +78,13 @@ function RoleSelectPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-on-surface">
       <header className="flex items-center justify-between px-4 sm:px-8 h-16 border-b border-border-muted">
-        
+        <Link to="/" className="flex items-center gap-3">
           <div className="w-8 h-8 shrink-0 rounded-lg bg-gradient-to-br from-primary-container to-secondary flex items-center justify-center">
-            
+            <Icon name="real_estate_agent" />
           </div>
           <span className="font-display font-bold text-lg truncate">Property Mogul</span>
         </Link>
-        
+        <ThemeToggle />
       </header>
 
       <main className="flex-1 flex items-center justify-center px-4 py-12 relative overflow-hidden">
@@ -133,7 +129,7 @@ function RoleSelectPage() {
                           : "bg-surface-container text-primary-container"
                       }`}
                     >
-                      
+                      <Icon name={r.icon} className="text-2xl" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <h2 className="font-display font-bold text-xl sm:text-2xl mb-1">
@@ -149,14 +145,16 @@ function RoleSelectPage() {
                       }`}
                     >
                       {selected && (
-                        
+                        <span className="material-symbols-outlined text-white text-sm" style={{ fontVariationSettings: "'FILL' 1, 'wght' 500" }}>
+                          check
+                        </span>
                       )}
                     </div>
                   </div>
                   <ul className="space-y-2">
                     {r.bullets.map((b) => (
                       <li key={b} className="flex items-center gap-2 text-sm text-on-surface-variant">
-                        
+                        <Icon name="check_circle" className="text-success-cyan text-lg" />
                         {b}
                       </li>
                     ))}
@@ -167,7 +165,7 @@ function RoleSelectPage() {
           </div>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-            
+            <Link to="/login" className="text-sm text-on-surface-variant hover:text-primary transition-colors">
               Already have an account? <span className="text-primary-container font-semibold">Sign in</span>
             </Link>
             <button
@@ -175,7 +173,7 @@ function RoleSelectPage() {
               onClick={proceed}
               className="w-full sm:w-auto bg-gradient-to-r from-primary-container to-secondary text-on-primary px-8 py-3.5 rounded-xl font-bold cyan-glow hover:brightness-110 active:scale-[0.99] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Continue 
+              Continue <Icon name="arrow_forward" />
             </button>
           </div>
         </div>

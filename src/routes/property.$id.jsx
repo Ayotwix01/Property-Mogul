@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 
 import { AiChatWidget } from "@/components/ai-chat-widget";
@@ -48,10 +48,14 @@ export const Route = createFileRoute("/property/$id")({
 function PropertyDetailPage() {
   const ready = usePreload(400);
   const { property } = Route.useLoaderData();
+  const navigate = useNavigate();
 
   const [tab, setTab] = useState("description");
   const [activeImage, setActiveImage] = useState(0);
   const [chatOpen, setChatOpen] = useState(false);
+  const [tourModalOpen, setTourModalOpen] = useState(false);
+  const [messageText, setMessageText] = useState("");
+  const [messageSent, setMessageSent] = useState(false);
 
   const others = useMemo(
     () => properties.filter((p) => p.id !== property.id).slice(0, 3),
@@ -268,13 +272,25 @@ function PropertyDetailPage() {
           </div>
 
           <aside className="lg:col-span-4 space-y-6">
-            <div className="glass-panel p-6 sm:p-8 rounded-2xl border-primary-container/20">
+<div className="glass-panel p-6 sm:p-8 rounded-2xl border-primary-container/20">
               <h3 className="text-xl font-bold mb-5">Take the Next Step</h3>
               <div className="space-y-3">
-                <button type="button" className="w-full py-3.5 rounded-xl font-bold text-on-primary bg-gradient-to-r from-primary-container to-secondary hover:brightness-110 active:scale-[0.99] transition">
+                <button
+                  type="button"
+                  onClick={() => setTourModalOpen(true)}
+                  className="w-full py-3.5 rounded-xl font-bold text-on-primary bg-gradient-to-r from-primary-container to-secondary hover:brightness-110 active:scale-[0.99] transition"
+                >
                   Schedule a Tour
                 </button>
-                <button type="button" className="w-full py-3.5 rounded-xl font-bold text-primary-container border border-primary-container hover:bg-primary-container/10 active:scale-[0.99] transition">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const subject = encodeURIComponent("Inquiry: " + property.title);
+                    const body = encodeURIComponent("Hello, I'm interested in " + property.title + " located at " + property.address + ". Please provide more details.");
+                    window.open(`mailto:${property.owner?.email || "owner@propertymogul.com"}?subject=${subject}&body=${body}`, "_blank");
+                  }}
+                  className="w-full py-3.5 rounded-xl font-bold text-primary-container border border-primary-container hover:bg-primary-container/10 active:scale-[0.99] transition"
+                >
                   Apply to Rent
                 </button>
               </div>
@@ -282,7 +298,9 @@ function PropertyDetailPage() {
               <div className="pt-6 mt-6 border-t border-border-muted">
                 <p className="text-[10px] tracking-widest uppercase text-on-surface-variant mb-3">Contact Owner</p>
                 <div className="flex items-start gap-3 mb-5">
-                  <div className="w-12 h-12 shrink-0 rounded-full bg-surface-container-high flex items-center justify-center border border-border-muted" />
+                  <div className="w-12 h-12 shrink-0 rounded-full bg-surface-container-high flex items-center justify-center border border-border-muted text-primary-container font-bold text-lg">
+                    {property.owner?.name?.charAt(0) || "O"}
+                  </div>
                   <div className="min-w-0">
                     <p className="font-bold truncate">{property.owner?.name}</p>
                     <p className="text-xs text-on-surface-variant">{property.owner?.title}</p>
@@ -295,14 +313,93 @@ function PropertyDetailPage() {
                   </div>
                 </div>
 
-                <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
-                  <input required value={""} onChange={() => {}} className="hidden" readOnly />
-                  <button type="button" className="w-full py-3 bg-surface-container-highest hover:bg-surface-variant transition-colors font-bold rounded-xl">
-                    Send Message
+                <form
+                  className="space-y-3"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!messageText.trim()) return;
+                    setMessageSent(true);
+                    const subject = encodeURIComponent("Inquiry: " + property.title);
+                    const body = encodeURIComponent(messageText + "\n\n-- Sent via Property Mogul");
+                    window.open(`mailto:${property.owner?.email || "owner@propertymogul.com"}?subject=${subject}&body=${body}`, "_blank");
+                    setTimeout(() => {
+                      setMessageText("");
+                      setMessageSent(false);
+                    }, 2000);
+                  }}
+                >
+                  <textarea
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    placeholder="Write a message..."
+                    className="w-full bg-background border border-border-muted rounded-xl p-3 text-sm focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none resize-none min-h-[80px]"
+                    rows={3}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!messageText.trim()}
+                    className="w-full py-3 bg-surface-container-highest hover:bg-surface-variant transition-colors font-bold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {messageSent ? "Message Sent! ✓" : "Send Message"}
                   </button>
                 </form>
               </div>
             </div>
+
+            {/* Tour modal */}
+            {tourModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setTourModalOpen(false)} />
+                <div className="relative bg-surface-container-lowest border border-border-muted rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold">Schedule a Tour</h3>
+                    <button type="button" onClick={() => setTourModalOpen(false)} className="p-1 rounded-lg hover:bg-surface-container transition-colors">
+                      <span className="material-symbols-outlined">close</span>
+                    </button>
+                  </div>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.target);
+                      const date = formData.get("tour-date");
+                      const time = formData.get("tour-time");
+                      const subject = encodeURIComponent("Tour Request: " + property.title);
+                      const body = encodeURIComponent(
+                        "Hello, I would like to schedule a tour for " + property.title + ".\n\nPreferred date: " + date + "\nPreferred time: " + time + "\n\n-- Sent via Property Mogul"
+                      );
+                      window.open(`mailto:${property.owner?.email || "owner@propertymogul.com"}?subject=${subject}&body=${body}`, "_blank");
+                      setTourModalOpen(false);
+                    }}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <label className="block text-sm font-bold mb-1">Preferred Date</label>
+                      <input
+                        type="date"
+                        name="tour-date"
+                        required
+                        className="w-full bg-background border border-border-muted rounded-xl p-3 text-sm focus:border-primary-container outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold mb-1">Preferred Time</label>
+                      <input
+                        type="time"
+                        name="tour-time"
+                        required
+                        className="w-full bg-background border border-border-muted rounded-xl p-3 text-sm focus:border-primary-container outline-none"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full py-3.5 rounded-xl font-bold text-on-primary bg-gradient-to-r from-primary-container to-secondary hover:brightness-110 active:scale-[0.99] transition"
+                    >
+                      Request Tour
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
 
             <div className="glass-panel p-6 rounded-2xl space-y-3">
               <h4 className="text-[10px] tracking-widest uppercase text-on-surface-variant">Quick Links</h4>
