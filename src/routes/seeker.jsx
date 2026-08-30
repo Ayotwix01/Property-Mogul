@@ -46,7 +46,9 @@ function SeekerDashboard() {
 
   // Role guard: redirect if not seeker
   useEffect(() => {
-    if (ready && roleState.isSeeker === false && roleState.roles.length > 0) {
+    if (ready && localStorage.getItem("pm_authed") !== "1") {
+      navigate({ to: "/login" });
+    } else if (ready && roleState.isSeeker === false) {
       navigate({ to: "/role-select" });
     }
   }, [ready, roleState, navigate]);
@@ -74,7 +76,12 @@ function SeekerDashboard() {
 
   const stats = [
     { label: "Saved Homes", value: saved.length, icon: "favorite", tone: "text-primary-container" },
-    { label: "Tours Booked", value: tours.length, icon: "event_available", tone: "text-success-cyan" },
+    {
+      label: "Tours Booked",
+      value: tours.length,
+      icon: "event_available",
+      tone: "text-success-cyan",
+    },
     { label: "Messages", value: 4, icon: "chat", tone: "text-primary" },
     { label: "Matches / week", value: 12, icon: "auto_awesome", tone: "text-primary-container" },
   ];
@@ -91,13 +98,22 @@ function SeekerDashboard() {
               <Link to="/seeker" className="text-primary font-bold">
                 Dashboard
               </Link>
-              <Link to="/browse" className="text-on-surface-variant hover:text-primary transition-colors">
+              <Link
+                to="/browse"
+                className="text-on-surface-variant hover:text-primary transition-colors"
+              >
                 Browse
               </Link>
-              <a className="text-on-surface-variant hover:text-primary transition-colors" href="#saved">
+              <a
+                className="text-on-surface-variant hover:text-primary transition-colors"
+                href="#saved"
+              >
                 Saved
               </a>
-              <a className="text-on-surface-variant hover:text-primary transition-colors" href="#tours">
+              <a
+                className="text-on-surface-variant hover:text-primary transition-colors"
+                href="#tours"
+              >
                 Tours
               </a>
             </nav>
@@ -106,7 +122,10 @@ function SeekerDashboard() {
             {/* Role switch button — only visible if user has BOTH roles */}
             {roleState.isBoth && (
               <button
-                onClick={() => { switchRole(); navigate({ to: "/owner" }); }}
+                onClick={() => {
+                  switchRole();
+                  navigate({ to: "/owner" });
+                }}
                 className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container/10 border border-primary-container/30 text-primary-container text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all"
                 type="button"
                 title="Switch to Owner view"
@@ -143,7 +162,10 @@ function SeekerDashboard() {
 
       {menuOpen && (
         <div className="fixed inset-0 z-[60] md:hidden">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
+          <div
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            onClick={() => setMenuOpen(false)}
+          />
           <div className="absolute right-0 top-0 h-full w-72 bg-surface-container-lowest border-l border-border-muted p-6 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <span className="font-display font-bold text-primary">Menu</span>
@@ -163,16 +185,32 @@ function SeekerDashboard() {
             </div>
 
             <nav className="flex flex-col gap-1">
-              <Link to="/seeker" onClick={() => setMenuOpen(false)} className="py-2 font-bold text-primary">
+              <Link
+                to="/seeker"
+                onClick={() => setMenuOpen(false)}
+                className="py-2 font-bold text-primary"
+              >
                 Dashboard
               </Link>
-              <Link to="/browse" onClick={() => setMenuOpen(false)} className="py-2 text-on-surface-variant hover:text-primary transition-colors">
+              <Link
+                to="/browse"
+                onClick={() => setMenuOpen(false)}
+                className="py-2 text-on-surface-variant hover:text-primary transition-colors"
+              >
                 Browse
               </Link>
-              <a href="#saved" onClick={() => setMenuOpen(false)} className="py-2 text-on-surface-variant hover:text-primary transition-colors">
+              <a
+                href="#saved"
+                onClick={() => setMenuOpen(false)}
+                className="py-2 text-on-surface-variant hover:text-primary transition-colors"
+              >
                 Saved
               </a>
-              <a href="#tours" onClick={() => setMenuOpen(false)} className="py-2 text-on-surface-variant hover:text-primary transition-colors">
+              <a
+                href="#tours"
+                onClick={() => setMenuOpen(false)}
+                className="py-2 text-on-surface-variant hover:text-primary transition-colors"
+              >
                 Tours
               </a>
             </nav>
@@ -181,7 +219,11 @@ function SeekerDashboard() {
             {roleState.isBoth && (
               <div className="mt-2 pt-4 border-t border-border-muted">
                 <button
-                  onClick={() => { setMenuOpen(false); switchRole(); navigate({ to: "/owner" }); }}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    switchRole();
+                    navigate({ to: "/owner" });
+                  }}
                   className="flex items-center gap-3 py-3 px-3 rounded-lg text-primary-container font-bold hover:bg-primary-container/10 transition-colors w-full text-left"
                   type="button"
                 >
@@ -258,7 +300,9 @@ function SeekerDashboard() {
           <div className="flex items-end justify-between mb-6 gap-4">
             <div>
               <h2 className="font-display font-bold text-2xl sm:text-3xl">Saved homes</h2>
-              <p className="text-on-surface-variant text-sm">Your shortlist — ready when you are.</p>
+              <p className="text-on-surface-variant text-sm">
+                Your shortlist — ready when you are.
+              </p>
             </div>
             <Link
               to="/favorites"
@@ -305,9 +349,7 @@ function SeekerDashboard() {
         <section className="mb-14">
           <div className="flex items-end justify-between mb-6 gap-4">
             <div>
-              <h2 className="font-display font-bold text-2xl sm:text-3xl">
-                Recommended for you
-              </h2>
+              <h2 className="font-display font-bold text-2xl sm:text-3xl">Recommended for you</h2>
               <p className="text-on-surface-variant text-sm">
                 Tailored to your saved homes and search history.
               </p>

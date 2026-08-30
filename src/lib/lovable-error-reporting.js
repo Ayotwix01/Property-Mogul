@@ -1,24 +1,4 @@
-type LovableErrorOptions = {
-  mechanism?: "manual" | "onerror" | "unhandledrejection" | "react_error_boundary";
-  handled?;
-  severity?: "error" | "warning" | "info";
-};
-
-type LovableEvents = {
-  captureException?: (
-    error,
-    context?<string, unknown>,
-    options?,
-  ) => void;
-};
-
-declare global {
-  interface Window {
-    __lovableEvents?;
-  }
-}
-
-export function reportLovableError(error, context<string, unknown> = {}) {
+export function reportLovableError(error, context = {}) {
   if (typeof window === "undefined") return;
   window.__lovableEvents?.captureException?.(
     error,

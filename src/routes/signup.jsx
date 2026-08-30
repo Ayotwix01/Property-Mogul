@@ -4,7 +4,7 @@ import { z } from "zod";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const signupSearchSchema = z.object({
-  role: z.enum(["owner", "seeker"]).optional(),
+  role: z.enum(["owner", "seeker", "both"]).optional(),
 });
 
 export const Route = createFileRoute("/signup")({
@@ -14,12 +14,11 @@ export const Route = createFileRoute("/signup")({
       { title: "Create Account | Property Mogul" },
       {
         name: "description",
-        content:
-          "Create your Property Mogul account and start listing or searching properties.",
+        content: "Create your Property Mogul account and start listing or searching properties.",
       },
     ],
   }),
-  component,
+  component: SignupPage,
 });
 
 function Icon({ name, className = "" }) {
@@ -41,7 +40,14 @@ function SignupPage() {
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
 
-  const roleLabel = role === "owner" ? "Property Owner" : role === "seeker" ? "Property Seeker" : null;
+  const roleLabel =
+    role === "owner"
+      ? "Property Owner"
+      : role === "seeker"
+        ? "Property Seeker"
+        : role === "both"
+          ? "Owner + Seeker"
+          : null;
 
   const pwLength = password.length;
   const pwHasUpper = /[A-Z]/.test(password);
@@ -56,8 +62,11 @@ function SignupPage() {
       if (role) {
         // Merge role with any existing roles (supports dual-role)
         const currentRole = localStorage.getItem("pm_role") || "";
-        const existing = currentRole ? currentRole.split(",").map((r) => r.trim().toLowerCase()) : [];
-        const merged = [...new Set([...existing, role])].join(",");
+        const existing = currentRole
+          ? currentRole.split(",").map((r) => r.trim().toLowerCase())
+          : [];
+        const selectedRoles = role === "both" ? ["owner", "seeker"] : [role];
+        const merged = [...new Set([...existing, ...selectedRoles])].join(",");
         localStorage.setItem("pm_role", merged);
       }
       if (name) localStorage.setItem("pm_user_name", name);
@@ -65,7 +74,10 @@ function SignupPage() {
     } catch {
       // ignore
     }
-    navigate({ to: role === "seeker" ? "/seeker" : role === "owner" ? "/owner" : "/browse" });
+    navigate({
+      to:
+        role === "seeker" ? "/seeker" : role === "owner" || role === "both" ? "/owner" : "/browse",
+    });
   };
 
   return (
@@ -143,7 +155,8 @@ function SignupPage() {
 
             <div>
               <label className="block text-xs font-label-caps text-on-surface-variant mb-2">
-                Password <span className="text-on-surface-variant font-mono-data">({pwLength})</span>
+                Password{" "}
+                <span className="text-on-surface-variant font-mono-data">({pwLength})</span>
               </label>
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container border border-border-muted focus-within:border-primary-container transition">
                 <Icon name="lock" className="text-on-surface-variant" />
@@ -172,8 +185,14 @@ function SignupPage() {
                   { ok: pwHasLower, label: "One lowercase letter" },
                   { ok: pwHasNumber, label: "One number" },
                 ].map((r) => (
-                  <div key={r.label} className={`flex items-center gap-1.5 text-xs ${r.ok ? "text-success-cyan" : "text-on-surface-variant"}`}>
-                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: `'FILL' ${r.ok ? 1 : 0}, 'wght' 500` }}>
+                  <div
+                    key={r.label}
+                    className={`flex items-center gap-1.5 text-xs ${r.ok ? "text-success-cyan" : "text-on-surface-variant"}`}
+                  >
+                    <span
+                      className="material-symbols-outlined text-sm"
+                      style={{ fontVariationSettings: `'FILL' ${r.ok ? 1 : 0}, 'wght' 500` }}
+                    >
                       {r.ok ? "check_circle" : "radio_button_unchecked"}
                     </span>
                     {r.label}
@@ -221,7 +240,10 @@ function SignupPage() {
 
           <p className="text-center text-sm text-on-surface-variant mt-8">
             Already have an account?{" "}
-            <Link to="/login" className="text-primary-container hover:text-primary transition-colors">
+            <Link
+              to="/login"
+              className="text-primary-container hover:text-primary transition-colors"
+            >
               Sign in
             </Link>
           </p>

@@ -33,10 +33,7 @@ function FavoritesPage() {
     }
   }, []);
 
-  const favProperties = useMemo(
-    () => properties.filter((p) => ids.includes(p.id)),
-    [ids],
-  );
+  const favProperties = useMemo(() => properties.filter((p) => ids.includes(p.id)), [ids]);
 
   const remove = (id) => {
     setIds((prev) => {
@@ -61,7 +58,10 @@ function FavoritesPage() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <Link to="/browse" className="text-on-surface-variant hover:text-primary transition-colors">
+            <Link
+              to="/browse"
+              className="text-on-surface-variant hover:text-primary transition-colors"
+            >
               Back to Browse
             </Link>
           </div>
@@ -80,7 +80,10 @@ function FavoritesPage() {
             <p className="text-sm max-w-md">
               Tap the heart on any property in Browse to save it here for later.
             </p>
-            <Link to="/browse" className="mt-4 bg-primary-container text-on-primary-container px-5 py-2 rounded-xl font-bold text-sm hover:brightness-110 transition-all">
+            <Link
+              to="/browse"
+              className="mt-4 bg-primary-container text-on-primary-container px-5 py-2 rounded-xl font-bold text-sm hover:brightness-110 transition-all"
+            >
               Browse properties
             </Link>
           </div>
@@ -114,7 +117,9 @@ function FavoritesPage() {
                 <div className="p-6 flex flex-col gap-2 flex-1">
                   <h3 className="text-xl font-bold truncate">{p.title}</h3>
                   <p className="text-sm text-on-surface-variant truncate">{p.location}</p>
-                  <span className="font-mono-data text-primary-container font-bold mt-auto pt-3">{p.price}</span>
+                  <span className="font-mono-data text-primary-container font-bold mt-auto pt-3">
+                    {p.price}
+                  </span>
 
                   <div className="grid grid-cols-2 gap-3 mt-4">
                     <Link
@@ -142,4 +147,3 @@ function FavoritesPage() {
     </div>
   );
 }
-

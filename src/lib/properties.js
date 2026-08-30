@@ -1,32 +1,4 @@
-tone: "success" | "primary" };
- label };
-
-  title;
-  location;
-  address;
-  price;
-  priceUnit;
-  category;
-  tags[];
-  specs[];
-  beds;
-  baths;
-  sqft;
-  yearBuilt;
-  totalUnits;
-  petFriendly;
-  certification;
-  description;
-  images[];
-  owner: {
-    name;
-    title;
-    phone;
-    email;
-  };
-};
-
-export const properties[] = [
+export const properties = [
   {
     id: "azure-heights-loft",
     title: "Azure Heights Loft",
@@ -280,29 +252,189 @@ export const properties[] = [
 
 // Additional generated listings so pagination has multiple pages
 const extraSeed = [
-  { id: "coastal-breeze-suites", title: "Coastal Breeze Suites", location: "Banana Island, Lagos", address: "12 Ocean Parade, Banana Island, Lagos", price: "₦6,200,000", category: "RESIDENTIAL", image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80" },
-  { id: "emerald-court-flats", title: "Emerald Court Flats", location: "Yaba, Lagos", address: "5 Herbert Macaulay Way, Yaba, Lagos", price: "₦1,150,000", category: "RESIDENTIAL", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80" },
-  { id: "obsidian-office-park", title: "Obsidian Office Park", location: "Ikeja GRA, Lagos", address: "Plot 14 Isaac John St, Ikeja GRA, Lagos", price: "₦9,800,000", category: "COMMERCIAL", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80" },
-  { id: "terracotta-townhouse", title: "Terracotta Townhouse", location: "Asokoro, Abuja", address: "18 Yakubu Gowon Cres, Asokoro, Abuja", price: "₦3,400,000", category: "RESIDENTIAL", image: "https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=1200&q=80" },
-  { id: "sable-ridge-estate", title: "Sable Ridge Estate", location: "Katampe, Abuja", address: "22 Katampe Extension, Abuja", price: "₦5,750,000", category: "RESIDENTIAL", image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80" },
-  { id: "aurora-retail-mall", title: "Aurora Retail Mall", location: "Surulere, Lagos", address: "88 Bode Thomas St, Surulere, Lagos", price: "₦22,000,000", category: "COMMERCIAL", image: "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=1200&q=80" },
-  { id: "moonstone-duplex", title: "Moonstone Duplex", location: "Magodo, Lagos", address: "7 CMD Road, Magodo Phase 2, Lagos", price: "₦2,900,000", category: "RESIDENTIAL", image: "https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=1200&q=80" },
-  { id: "citrine-studio-lofts", title: "Citrine Studio Lofts", location: "Wuse 2, Abuja", address: "9 Aminu Kano Cres, Wuse 2, Abuja", price: "₦980,000", category: "RESIDENTIAL", image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80" },
-  { id: "titan-industrial-yard", title: "Titan Industrial Yard", location: "Apapa, Lagos", address: "Wharf Road, Apapa, Lagos", price: "₦11,500,000", category: "INDUSTRIAL", image: "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?w=1200&q=80" },
-  { id: "ivory-court-apartments", title: "Ivory Court Apartments", location: "Ajah, Lagos", address: "Km 22 Lekki-Epe Expressway, Ajah, Lagos", price: "₦1,420,000", category: "RESIDENTIAL", image: "https://images.unsplash.com/photo-1494526585095-c41746248156?w=1200&q=80" },
-  { id: "granite-corporate-tower", title: "Granite Corporate Tower", location: "Marina, Lagos", address: "40 Marina Rd, Lagos Island, Lagos", price: "₦18,500,000", category: "COMMERCIAL", image: "https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=1200&q=80" },
-  { id: "opal-garden-villas", title: "Opal Garden Villas", location: "Life Camp, Abuja", address: "Plot 33 Life Camp District, Abuja", price: "₦3,850,000", category: "RESIDENTIAL", image: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=1200&q=80" },
-  { id: "cobalt-warehouse-park", title: "Cobalt Warehouse Park", location: "Ogba, Lagos", address: "Acme Rd, Ogba Industrial Estate, Lagos", price: "₦7,650,000", category: "INDUSTRIAL", image: "https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=1200&q=80" },
-  { id: "jasper-heights-flats", title: "Jasper Heights Flats", location: "Ikate, Lekki", address: "Ikate Elegushi, Lekki, Lagos", price: "₦2,180,000", category: "RESIDENTIAL", image: "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=1200&q=80" },
-  { id: "solstice-hotel-residence", title: "Solstice Hotel Residence", location: "Central Business District, Abuja", address: "CBD, Abuja", price: "₦14,900,000", category: "LUXURY RENTAL", image: "https://images.unsplash.com/photo-1519449556851-5720b33024e7?w=1200&q=80" },
-  { id: "coral-bay-bungalow", title: "Coral Bay Bungalow", location: "Sangotedo, Lagos", address: "Monastery Rd, Sangotedo, Lagos", price: "₦1,650,000", category: "RESIDENTIAL", image: "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=1200&q=80" },
-  { id: "meridian-medical-plaza", title: "Meridian Medical Plaza", location: "Garki, Abuja", address: "Area 11, Garki, Abuja", price: "₦10,250,000", category: "COMMERCIAL", image: "https://images.unsplash.com/photo-1587351021355-a479a299d2f9?w=1200&q=80" },
-  { id: "zenith-riverside-flats", title: "Zenith Riverside Flats", location: "Oniru, Lagos", address: "4 Ligali Ayorinde St, Oniru, Lagos", price: "₦3,120,000", category: "RESIDENTIAL", image: "https://images.unsplash.com/photo-1613977257592-4a9a32f9141b?w=1200&q=80" },
-  { id: "silverline-office-suites", title: "Silverline Office Suites", location: "Utako, Abuja", address: "Plot 8 Ekukinam St, Utako, Abuja", price: "₦8,400,000", category: "COMMERCIAL", image: "https://images.unsplash.com/photo-1497215842964-222b430dc094?w=1200&q=80" },
-  { id: "amber-lake-cottage", title: "Amber Lake Cottage", location: "Epe, Lagos", address: "Lakowe-Ajah Rd, Epe, Lagos", price: "₦2,050,000", category: "RESIDENTIAL", image: "https://images.unsplash.com/photo-1600585154084-4e5fe7c39198?w=1200&q=80" },
+  {
+    id: "coastal-breeze-suites",
+    title: "Coastal Breeze Suites",
+    location: "Banana Island, Lagos",
+    address: "12 Ocean Parade, Banana Island, Lagos",
+    price: "₦6,200,000",
+    category: "RESIDENTIAL",
+    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80",
+  },
+  {
+    id: "emerald-court-flats",
+    title: "Emerald Court Flats",
+    location: "Yaba, Lagos",
+    address: "5 Herbert Macaulay Way, Yaba, Lagos",
+    price: "₦1,150,000",
+    category: "RESIDENTIAL",
+    image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&q=80",
+  },
+  {
+    id: "obsidian-office-park",
+    title: "Obsidian Office Park",
+    location: "Ikeja GRA, Lagos",
+    address: "Plot 14 Isaac John St, Ikeja GRA, Lagos",
+    price: "₦9,800,000",
+    category: "COMMERCIAL",
+    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80",
+  },
+  {
+    id: "terracotta-townhouse",
+    title: "Terracotta Townhouse",
+    location: "Asokoro, Abuja",
+    address: "18 Yakubu Gowon Cres, Asokoro, Abuja",
+    price: "₦3,400,000",
+    category: "RESIDENTIAL",
+    image: "https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=1200&q=80",
+  },
+  {
+    id: "sable-ridge-estate",
+    title: "Sable Ridge Estate",
+    location: "Katampe, Abuja",
+    address: "22 Katampe Extension, Abuja",
+    price: "₦5,750,000",
+    category: "RESIDENTIAL",
+    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80",
+  },
+  {
+    id: "aurora-retail-mall",
+    title: "Aurora Retail Mall",
+    location: "Surulere, Lagos",
+    address: "88 Bode Thomas St, Surulere, Lagos",
+    price: "₦22,000,000",
+    category: "COMMERCIAL",
+    image: "https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?w=1200&q=80",
+  },
+  {
+    id: "moonstone-duplex",
+    title: "Moonstone Duplex",
+    location: "Magodo, Lagos",
+    address: "7 CMD Road, Magodo Phase 2, Lagos",
+    price: "₦2,900,000",
+    category: "RESIDENTIAL",
+    image: "https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=1200&q=80",
+  },
+  {
+    id: "citrine-studio-lofts",
+    title: "Citrine Studio Lofts",
+    location: "Wuse 2, Abuja",
+    address: "9 Aminu Kano Cres, Wuse 2, Abuja",
+    price: "₦980,000",
+    category: "RESIDENTIAL",
+    image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80",
+  },
+  {
+    id: "titan-industrial-yard",
+    title: "Titan Industrial Yard",
+    location: "Apapa, Lagos",
+    address: "Wharf Road, Apapa, Lagos",
+    price: "₦11,500,000",
+    category: "INDUSTRIAL",
+    image: "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?w=1200&q=80",
+  },
+  {
+    id: "ivory-court-apartments",
+    title: "Ivory Court Apartments",
+    location: "Ajah, Lagos",
+    address: "Km 22 Lekki-Epe Expressway, Ajah, Lagos",
+    price: "₦1,420,000",
+    category: "RESIDENTIAL",
+    image: "https://images.unsplash.com/photo-1494526585095-c41746248156?w=1200&q=80",
+  },
+  {
+    id: "granite-corporate-tower",
+    title: "Granite Corporate Tower",
+    location: "Marina, Lagos",
+    address: "40 Marina Rd, Lagos Island, Lagos",
+    price: "₦18,500,000",
+    category: "COMMERCIAL",
+    image: "https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=1200&q=80",
+  },
+  {
+    id: "opal-garden-villas",
+    title: "Opal Garden Villas",
+    location: "Life Camp, Abuja",
+    address: "Plot 33 Life Camp District, Abuja",
+    price: "₦3,850,000",
+    category: "RESIDENTIAL",
+    image: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=1200&q=80",
+  },
+  {
+    id: "cobalt-warehouse-park",
+    title: "Cobalt Warehouse Park",
+    location: "Ogba, Lagos",
+    address: "Acme Rd, Ogba Industrial Estate, Lagos",
+    price: "₦7,650,000",
+    category: "INDUSTRIAL",
+    image: "https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=1200&q=80",
+  },
+  {
+    id: "jasper-heights-flats",
+    title: "Jasper Heights Flats",
+    location: "Ikate, Lekki",
+    address: "Ikate Elegushi, Lekki, Lagos",
+    price: "₦2,180,000",
+    category: "RESIDENTIAL",
+    image: "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=1200&q=80",
+  },
+  {
+    id: "solstice-hotel-residence",
+    title: "Solstice Hotel Residence",
+    location: "Central Business District, Abuja",
+    address: "CBD, Abuja",
+    price: "₦14,900,000",
+    category: "LUXURY RENTAL",
+    image: "https://images.unsplash.com/photo-1519449556851-5720b33024e7?w=1200&q=80",
+  },
+  {
+    id: "coral-bay-bungalow",
+    title: "Coral Bay Bungalow",
+    location: "Sangotedo, Lagos",
+    address: "Monastery Rd, Sangotedo, Lagos",
+    price: "₦1,650,000",
+    category: "RESIDENTIAL",
+    image: "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=1200&q=80",
+  },
+  {
+    id: "meridian-medical-plaza",
+    title: "Meridian Medical Plaza",
+    location: "Garki, Abuja",
+    address: "Area 11, Garki, Abuja",
+    price: "₦10,250,000",
+    category: "COMMERCIAL",
+    image: "https://images.unsplash.com/photo-1587351021355-a479a299d2f9?w=1200&q=80",
+  },
+  {
+    id: "zenith-riverside-flats",
+    title: "Zenith Riverside Flats",
+    location: "Oniru, Lagos",
+    address: "4 Ligali Ayorinde St, Oniru, Lagos",
+    price: "₦3,120,000",
+    category: "RESIDENTIAL",
+    image: "https://images.unsplash.com/photo-1613977257592-4a9a32f9141b?w=1200&q=80",
+  },
+  {
+    id: "silverline-office-suites",
+    title: "Silverline Office Suites",
+    location: "Utako, Abuja",
+    address: "Plot 8 Ekukinam St, Utako, Abuja",
+    price: "₦8,400,000",
+    category: "COMMERCIAL",
+    image: "https://images.unsplash.com/photo-1497215842964-222b430dc094?w=1200&q=80",
+  },
+  {
+    id: "amber-lake-cottage",
+    title: "Amber Lake Cottage",
+    location: "Epe, Lagos",
+    address: "Lakowe-Ajah Rd, Epe, Lagos",
+    price: "₦2,050,000",
+    category: "RESIDENTIAL",
+    image: "https://images.unsplash.com/photo-1600585154084-4e5fe7c39198?w=1200&q=80",
+  },
 ];
 
-const extraProperties[] = extraSeed.map((s, i) => {
+const extraProperties = extraSeed.map((s, i) => {
   const beds = 2 + (i % 4);
   const baths = 1 + (i % 3);
   const sqft = 900 + i * 220;
@@ -314,17 +446,26 @@ const extraProperties[] = extraSeed.map((s, i) => {
     price: s.price,
     priceUnit: "per year",
     category: s.category,
-    tags: [{ label: i % 3 === 0 ? "NEW" : i % 3 === 1 ? "FOR RENT" : "FEATURED", tone: (i % 2 === 0 ? "success" : "primary")"success" | "primary" }],
-    specs: s.category === "INDUSTRIAL" || s.category === "COMMERCIAL"
-      ? [
-          { icon: "corporate_fare", label: s.category === "INDUSTRIAL" ? "Warehouse" : "Office Suite" },
-          { icon: "square_foot", label: `${sqft.toLocaleString()} sqft` },
-        ]
-      : [
-          { icon: "bed", label: `${beds} Beds` },
-          { icon: "bathtub", label: `${baths} Baths` },
-          { icon: "square_foot", label: `${sqft.toLocaleString()} sqft` },
-        ],
+    tags: [
+      {
+        label: i % 3 === 0 ? "NEW" : i % 3 === 1 ? "FOR RENT" : "FEATURED",
+        tone: i % 2 === 0 ? "success" : "primary",
+      },
+    ],
+    specs:
+      s.category === "INDUSTRIAL" || s.category === "COMMERCIAL"
+        ? [
+            {
+              icon: "corporate_fare",
+              label: s.category === "INDUSTRIAL" ? "Warehouse" : "Office Suite",
+            },
+            { icon: "square_foot", label: `${sqft.toLocaleString()} sqft` },
+          ]
+        : [
+            { icon: "bed", label: `${beds} Beds` },
+            { icon: "bathtub", label: `${baths} Baths` },
+            { icon: "square_foot", label: `${sqft.toLocaleString()} sqft` },
+          ],
     beds,
     baths,
     sqft,
@@ -345,6 +486,6 @@ const extraProperties[] = extraSeed.map((s, i) => {
 
 properties.push(...extraProperties);
 
-export function getProperty(id) | undefined {
+export function getProperty(id) {
   return properties.find((p) => p.id === id);
 }

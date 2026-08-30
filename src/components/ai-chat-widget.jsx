@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { chatCompletion } from "@/lib/chat.functions";
 
-type Msg = { role: "user" | "assistant"; content };
-
 const STORAGE_KEY = "pm_chat_history";
 const WELCOME = {
   role: "assistant",
@@ -17,25 +15,7 @@ const QUICK_PROMPTS = [
   "Explain the mortgage process",
 ];
 
-function Icon({ name, className = "" }: { name; className? }) {
-  return (
-    <span
-      className={`material-symbols-outlined ${className}`}
-      style={{ fontVariationSettings: "'FILL' 0, 'wght' 500" }}
-      aria-hidden="true"
-    >
-      {name}
-    </span>
-  );
-}
-
-export function AiChatWidget({
-  open,
-  onClose,
-}: {
-  open;
-  onClose: () => void;
-}) {
+export function AiChatWidget({ open, onClose }) {
   const [messages, setMessages] = useState([WELCOME]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,7 +29,7 @@ export function AiChatWidget({
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw)[];
+        const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) setMessages(parsed);
       }
     } catch {
@@ -83,7 +63,7 @@ export function AiChatWidget({
   const sendText = async (text) => {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
-    const next[] = [...messages, { role: "user", content: trimmed }];
+    const next = [...messages, { role: "user", content: trimmed }];
     setMessages(next);
     setInput("");
     setLoading(true);
@@ -113,16 +93,19 @@ export function AiChatWidget({
   const showQuickPrompts = messages.length <= 1 && !loading;
 
   return (
-    <div className="fixed inset-0 z-[100] pointer-events-none" role="dialog" aria-modal="true" aria-label="Mogul Assistant chat">
+    <div
+      className="fixed inset-0 z-[100] pointer-events-none"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mogul Assistant chat"
+    >
       <div
         className="absolute inset-0 bg-black/30 backdrop-blur-sm pointer-events-auto sm:hidden"
         onClick={onClose}
       />
       <div className="pointer-events-auto absolute bottom-4 right-4 left-4 sm:left-auto sm:w-[400px] max-h-[80vh] flex flex-col bg-surface-container-lowest border border-border-muted rounded-3xl shadow-2xl overflow-hidden">
         <div className="flex items-center gap-3 p-4 border-b border-border-muted bg-surface-container">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-secondary flex items-center justify-center text-on-primary-container">
-            
-          </div>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-container to-secondary flex items-center justify-center text-on-primary-container"></div>
           <div className="flex-1 min-w-0">
             <p className="font-display font-bold text-on-surface truncate">Mogul Assistant</p>
             <p className="text-xs text-on-surface-variant flex items-center gap-1.5">
@@ -135,16 +118,12 @@ export function AiChatWidget({
             aria-label="Clear conversation"
             title="Clear conversation"
             className="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-background transition-colors"
-          >
-            
-          </button>
+          ></button>
           <button
             onClick={onClose}
             aria-label="Close chat"
             className="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-background transition-colors"
-          >
-            
-          </button>
+          ></button>
         </div>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-background">
@@ -208,9 +187,7 @@ export function AiChatWidget({
             disabled={loading || !input.trim()}
             aria-label="Send message"
             className="w-11 h-11 shrink-0 grid place-items-center rounded-xl bg-primary-container text-on-primary-container disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform"
-          >
-            
-          </button>
+          ></button>
         </form>
       </div>
     </div>

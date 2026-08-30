@@ -46,12 +46,21 @@ export function getRoles() {
       .filter(Boolean);
     const isSeeker = roles.includes("seeker");
     const isOwner = roles.includes("owner");
+    const activeRole = localStorage.getItem("pm_active_role");
+    const isBoth = isSeeker && isOwner;
     return {
       roles,
       isSeeker,
       isOwner,
-      isBoth: isSeeker && isOwner,
-      current: isOwner ? "owner" : isSeeker ? "seeker" : null,
+      isBoth,
+      current:
+        isBoth && (activeRole === "owner" || activeRole === "seeker")
+          ? activeRole
+          : isOwner
+            ? "owner"
+            : isSeeker
+              ? "seeker"
+              : null,
     };
   } catch {
     return { roles: [], isSeeker: false, isOwner: false, isBoth: false, current: null };
@@ -79,13 +88,12 @@ export function useRole() {
  * Only works if user has both roles.
  */
 export function switchRole() {
-  const { roles, isBoth } = getRoles();
+  const { isBoth } = getRoles();
   if (!isBoth) return;
   try {
     const current = localStorage.getItem("pm_active_role") || "seeker";
     const next = current === "owner" ? "seeker" : "owner";
     localStorage.setItem("pm_active_role", next);
-    localStorage.setItem("pm_role", next);
     // Dispatch storage event so other tabs/hooks pick it up
     window.dispatchEvent(new Event("storage"));
   } catch {

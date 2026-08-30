@@ -7,8 +7,8 @@ function getInitial() {
   return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
 
-export function ThemeToggle({ className = "" }: { className? }) {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+export function ThemeToggle({ className = "" }) {
+  const [theme, setTheme] = useState("dark");
 
   useEffect(() => {
     const t = getInitial();

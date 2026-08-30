@@ -20,7 +20,7 @@ export const Route = createFileRoute("/resources")({
     ],
     links: [{ rel: "canonical", href: "/resources" }],
   }),
-  component,
+  component: ResourcesPage,
 });
 
 const guides = [
@@ -56,18 +56,6 @@ const guides = [
   },
 ];
 
-function Icon({ name, className = "" }) {
-  return (
-    <span
-      className={`material-symbols-outlined ${className}`}
-      style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
-      aria-hidden="true"
-    >
-      {name}
-    </span>
-  );
-}
-
 function ResourcesPage() {
   return (
     <div className="min-h-screen bg-background text-on-surface flex flex-col">
@@ -78,7 +66,10 @@ function ResourcesPage() {
           </Link>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link to="/browse" className="text-on-surface-variant hover:text-primary transition-colors text-sm">
+            <Link
+              to="/browse"
+              className="text-on-surface-variant hover:text-primary transition-colors text-sm"
+            >
               Back to Browse
             </Link>
           </div>
@@ -104,9 +95,7 @@ function ResourcesPage() {
               key={g.title}
               className="group bg-surface-container-lowest border border-border-muted rounded-3xl p-6 hover:border-primary-container/30 transition-colors"
             >
-              <div className="w-12 h-12 rounded-2xl bg-primary-container/10 border border-primary-container/30 text-primary-container grid place-items-center mb-4 group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
-                
-              </div>
+              <div className="w-12 h-12 rounded-2xl bg-primary-container/10 border border-primary-container/30 text-primary-container grid place-items-center mb-4 group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors"></div>
               <h2 className="font-display font-bold text-xl mb-2">{g.title}</h2>
               <p className="text-sm text-on-surface-variant">{g.body}</p>
               <button className="mt-4 text-sm font-bold text-primary-container hover:underline">

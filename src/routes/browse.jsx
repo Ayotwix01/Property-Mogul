@@ -76,14 +76,12 @@ function useFavorites() {
 }
 
 function parsePrice(input) {
-  const trimmed = String(input ?? "").trim().toLowerCase();
+  const trimmed = String(input ?? "")
+    .trim()
+    .toLowerCase();
   if (!trimmed) return 0;
 
-  const mult = trimmed.endsWith("m")
-    ? 1_000_000
-    : trimmed.endsWith("k")
-      ? 1_000
-      : 1;
+  const mult = trimmed.endsWith("m") ? 1_000_000 : trimmed.endsWith("k") ? 1_000 : 1;
 
   const n = parseFloat(trimmed.replace(/[^0-9.]/g, ""));
   if (Number.isNaN(n)) return 0;
@@ -95,9 +93,7 @@ function paginationRange(current, total) {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
 
   const set = new Set([1, total, current, current - 1, current + 1]);
-  const pages = [...set]
-    .filter((n) => n >= 1 && n <= total)
-    .sort((a, b) => a - b);
+  const pages = [...set].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
 
   const out = [];
   for (let i = 0; i < pages.length; i++) {
@@ -134,13 +130,7 @@ function BrowsePage() {
     setMinDraft(search.min ? String(search.min) : "");
     setMaxDraft(search.max ? String(search.max) : "");
     setBedsDraft(search.beds);
-  }, [
-    search.q,
-    search.type,
-    search.min,
-    search.max,
-    search.beds,
-  ]);
+  }, [search.q, search.type, search.min, search.max, search.beds]);
 
   // Body scroll lock while overlays are open
   useEffect(() => {
@@ -184,7 +174,10 @@ function BrowsePage() {
         if (!haystack.includes(q)) return false;
       }
 
-      if (search.type !== "All" && String(p.category ?? "").toUpperCase() !== search.type.toUpperCase()) {
+      if (
+        search.type !== "All" &&
+        String(p.category ?? "").toUpperCase() !== search.type.toUpperCase()
+      ) {
         return false;
       }
 
@@ -210,14 +203,7 @@ function BrowsePage() {
       default:
         return list;
     }
-  }, [
-    search.q,
-    search.type,
-    search.min,
-    search.max,
-    search.beds,
-    search.sort,
-  ]);
+  }, [search.q, search.type, search.min, search.max, search.beds, search.sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(Math.max(1, search.page), totalPages);
@@ -309,17 +295,28 @@ function BrowsePage() {
       <header className="fixed top-0 inset-x-0 z-50 bg-surface-glass backdrop-blur-xl border-b border-border-muted">
         <div className="max-w-[1400px] mx-auto flex justify-between items-center px-5 md:px-16 py-4 gap-4">
           <div className="flex items-center gap-4 sm:gap-8 min-w-0">
-            <Link
-              to="/"
-              className="font-display font-bold text-primary text-lg"
-            >
+            <Link to="/" className="font-display font-bold text-primary text-lg">
               Property Mogul
             </Link>
-<nav className="hidden md:flex items-center gap-6">
-              <Link to="/browse" className={pathname === "/browse" ? "text-primary" : "text-on-surface-variant hover:text-primary"}>
+            <nav className="hidden md:flex items-center gap-6">
+              <Link
+                to="/browse"
+                className={
+                  pathname === "/browse"
+                    ? "text-primary"
+                    : "text-on-surface-variant hover:text-primary"
+                }
+              >
                 Browse
               </Link>
-              <Link to="/favorites" className={pathname === "/favorites" ? "text-primary" : "text-on-surface-variant hover:text-primary"}>
+              <Link
+                to="/favorites"
+                className={
+                  pathname === "/favorites"
+                    ? "text-primary"
+                    : "text-on-surface-variant hover:text-primary"
+                }
+              >
                 <span className="inline-flex items-center gap-2">
                   Favorites
                   {favorites.size > 0 && (
@@ -330,16 +327,37 @@ function BrowsePage() {
                 </span>
               </Link>
               {roleState.isOwner && (
-                <Link to="/owner" className={pathname === "/owner" ? "text-primary" : "text-on-surface-variant hover:text-primary"}>
+                <Link
+                  to="/owner"
+                  className={
+                    pathname === "/owner"
+                      ? "text-primary"
+                      : "text-on-surface-variant hover:text-primary"
+                  }
+                >
                   My Listings
                 </Link>
               )}
               {roleState.isSeeker && (
-                <Link to="/seeker" className={pathname === "/seeker" ? "text-primary" : "text-on-surface-variant hover:text-primary"}>
+                <Link
+                  to="/seeker"
+                  className={
+                    pathname === "/seeker"
+                      ? "text-primary"
+                      : "text-on-surface-variant hover:text-primary"
+                  }
+                >
                   Dashboard
                 </Link>
               )}
-              <Link to="/resources" className={pathname === "/resources" ? "text-primary" : "text-on-surface-variant hover:text-primary"}>
+              <Link
+                to="/resources"
+                className={
+                  pathname === "/resources"
+                    ? "text-primary"
+                    : "text-on-surface-variant hover:text-primary"
+                }
+              >
                 Resources
               </Link>
             </nav>
@@ -365,7 +383,10 @@ function BrowsePage() {
               <span className="material-symbols-outlined">smart_toy</span>
             </button>
 
-<Link to="/owner" className="hidden md:inline-flex items-center text-on-surface-variant hover:text-primary">
+            <Link
+              to="/owner"
+              className="hidden md:inline-flex items-center text-on-surface-variant hover:text-primary"
+            >
               {roleState.isOwner ? "Dashboard" : roleState.isSeeker ? "Seeker" : "Dashboard"}
             </Link>
 
@@ -500,8 +521,8 @@ function BrowsePage() {
                   Property Search <span className="primary-gradient-text">Redefined</span>
                 </h1>
                 <p className="text-on-surface-variant text-sm sm:text-base lg:text-lg max-w-2xl">
-                  Discover your next home or investment in our curated collection of global real estate.
-                  Secure, transparent, and professional.
+                  Discover your next home or investment in our curated collection of global real
+                  estate. Secure, transparent, and professional.
                 </p>
               </div>
 
@@ -743,12 +764,18 @@ function BrowsePage() {
                       </div>
                       <button
                         onClick={() => toggleFav(p.id)}
-                        aria-label={favorites.has(p.id) ? `Remove ${p.title} from favorites` : `Add ${p.title} to favorites`}
+                        aria-label={
+                          favorites.has(p.id)
+                            ? `Remove ${p.title} from favorites`
+                            : `Add ${p.title} to favorites`
+                        }
                         aria-pressed={favorites.has(p.id)}
                         className="absolute top-4 right-4 bg-background/40 backdrop-blur-md text-on-surface p-2 rounded-full hover:bg-primary-container hover:text-on-primary-container transition-colors"
                         type="button"
                       >
-                        <span className="material-symbols-outlined">{favorites.has(p.id) ? "favorite" : "favorite_border"}</span>
+                        <span className="material-symbols-outlined">
+                          {favorites.has(p.id) ? "favorite" : "favorite_border"}
+                        </span>
                       </button>
                     </div>
 
@@ -763,13 +790,18 @@ function BrowsePage() {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="font-mono-data text-primary-container text-lg font-bold">{p.price}</span>
+                          <span className="font-mono-data text-primary-container text-lg font-bold">
+                            {p.price}
+                          </span>
                         </div>
                       </div>
 
                       <div className="flex flex-wrap gap-4 mb-6 py-2 border-y border-border-muted/50">
                         {p.specs?.map((s) => (
-                          <div key={s.label} className="flex items-center gap-1.5 text-on-surface-variant">
+                          <div
+                            key={s.label}
+                            className="flex items-center gap-1.5 text-on-surface-variant"
+                          >
                             <span className="text-sm font-mono-data">{s.label}</span>
                           </div>
                         ))}
@@ -812,7 +844,10 @@ function BrowsePage() {
               of {filtered.length} properties
             </p>
 
-            <nav className="flex items-center gap-2 flex-wrap justify-center" aria-label="Pagination">
+            <nav
+              className="flex items-center gap-2 flex-wrap justify-center"
+              aria-label="Pagination"
+            >
               <button
                 aria-label="Previous page"
                 onClick={() => changePage(currentPage - 1)}
@@ -825,7 +860,10 @@ function BrowsePage() {
 
               {paginationRange(currentPage, totalPages).map((n, i) =>
                 n === "…" ? (
-                  <span key={`e${i}`} className="w-10 h-10 flex items-center justify-center text-on-surface-variant">
+                  <span
+                    key={`e${i}`}
+                    className="w-10 h-10 flex items-center justify-center text-on-surface-variant"
+                  >
                     …
                   </span>
                 ) : (
@@ -890,15 +928,17 @@ function BrowsePage() {
           </p>
         </div>
         <div className="flex flex-wrap justify-center gap-6 md:gap-8">
-          {["About Us", "Our Services", "Privacy Policy", "Contact", "Terms of Service"].map((l) => (
-            <a
-              key={l}
-              className="text-on-surface-variant hover:text-primary-container transition-colors text-sm"
-              href="#"
-            >
-              {l}
-            </a>
-          ))}
+          {["About Us", "Our Services", "Privacy Policy", "Contact", "Terms of Service"].map(
+            (l) => (
+              <a
+                key={l}
+                className="text-on-surface-variant hover:text-primary-container transition-colors text-sm"
+                href="#"
+              >
+                {l}
+              </a>
+            ),
+          )}
         </div>
       </footer>
 
@@ -921,4 +961,3 @@ function BrowsePage() {
     </div>
   );
 }
-

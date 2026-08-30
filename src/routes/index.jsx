@@ -88,17 +88,31 @@ function Landing() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 text-sm text-on-surface-variant">
-            <a href="#listings" className="hover:text-primary transition-colors">Listings</a>
-            <a href="#why" className="hover:text-primary transition-colors">Why Us</a>
-            <a href="#how" className="hover:text-primary transition-colors">How it Works</a>
-            <a href="#contact" className="hover:text-primary transition-colors">Contact</a>
+            <a href="#listings" className="hover:text-primary transition-colors">
+              Listings
+            </a>
+            <a href="#why" className="hover:text-primary transition-colors">
+              Why Us
+            </a>
+            <a href="#how" className="hover:text-primary transition-colors">
+              How it Works
+            </a>
+            <a href="#contact" className="hover:text-primary transition-colors">
+              Contact
+            </a>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link to="/login" className="hidden md:inline-flex text-on-surface-variant hover:text-primary transition-colors">
+            <Link
+              to="/login"
+              className="hidden md:inline-flex text-on-surface-variant hover:text-primary transition-colors"
+            >
               Sign In
             </Link>
-            <Link to="/role-select" className="hidden md:inline-flex text-on-surface-variant hover:text-primary transition-colors">
+            <Link
+              to="/role-select"
+              className="hidden md:inline-flex text-on-surface-variant hover:text-primary transition-colors"
+            >
               Get Started
             </Link>
 
@@ -115,13 +129,49 @@ function Landing() {
 
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border-muted bg-background/95 backdrop-blur-xl px-4 py-4 space-y-3 text-sm">
-            <a href="#listings" onClick={() => setMobileMenuOpen(false)} className="block py-1 text-on-surface-variant">Listings</a>
-            <a href="#why" onClick={() => setMobileMenuOpen(false)} className="block py-1 text-on-surface-variant">Why Us</a>
-            <a href="#how" onClick={() => setMobileMenuOpen(false)} className="block py-1 text-on-surface-variant">How it Works</a>
-            <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="block py-1 text-on-surface-variant">Contact</a>
+            <a
+              href="#listings"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-1 text-on-surface-variant"
+            >
+              Listings
+            </a>
+            <a
+              href="#why"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-1 text-on-surface-variant"
+            >
+              Why Us
+            </a>
+            <a
+              href="#how"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-1 text-on-surface-variant"
+            >
+              How it Works
+            </a>
+            <a
+              href="#contact"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-1 text-on-surface-variant"
+            >
+              Contact
+            </a>
             <div className="flex gap-2 pt-2 border-t border-border-muted">
-              <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="block py-1 text-on-surface-variant">Sign In</Link>
-              <Link to="/role-select" onClick={() => setMobileMenuOpen(false)} className="block py-1 text-on-surface-variant">Get Started</Link>
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-1 text-on-surface-variant"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/role-select"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-1 text-on-surface-variant"
+              >
+                Get Started
+              </Link>
             </div>
           </div>
         )}
@@ -143,10 +193,16 @@ function Landing() {
               renters, and buyers with premium listings through a seamless digital experience.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-              <Link to="/browse" className="bg-primary-container text-on-primary-container px-8 sm:px-10 py-3 rounded-xl font-bold hover:brightness-110 transition-all cyan-glow w-full sm:w-auto text-center">
+              <Link
+                to="/browse"
+                className="bg-primary-container text-on-primary-container px-8 sm:px-10 py-3 rounded-xl font-bold hover:brightness-110 transition-all cyan-glow w-full sm:w-auto text-center"
+              >
                 Find a Home
               </Link>
-              <Link to="/role-select" className="px-8 sm:px-10 py-3 rounded-xl border border-border-muted hover:bg-surface-container transition-all font-bold w-full sm:w-auto text-center">
+              <Link
+                to="/role-select"
+                className="px-8 sm:px-10 py-3 rounded-xl border border-border-muted hover:bg-surface-container transition-all font-bold w-full sm:w-auto text-center"
+              >
                 List Your Property
               </Link>
             </div>
@@ -157,9 +213,14 @@ function Landing() {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-10 sm:mb-12">
             <div>
               <h2 className="text-3xl md:text-5xl text-primary mb-2">Featured Listings</h2>
-              <p className="text-on-surface-variant">Discover premium properties available for sale and rent.</p>
+              <p className="text-on-surface-variant">
+                Discover premium properties available for sale and rent.
+              </p>
             </div>
-            <Link to="/browse" className="text-primary-container hover:text-primary transition-colors font-bold">
+            <Link
+              to="/browse"
+              className="text-primary-container hover:text-primary transition-colors font-bold"
+            >
               View all listings
             </Link>
           </div>
@@ -192,11 +253,15 @@ function Landing() {
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-border-muted">
                     <div>
-                      <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Price</p>
+                      <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">
+                        Price
+                      </p>
                       <p className="text-primary-container font-mono-data text-xl">{p.price}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Details</p>
+                      <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">
+                        Details
+                      </p>
                       <p className="text-success-cyan font-mono-data text-xl">{p.meta}</p>
                     </div>
                   </div>
@@ -217,7 +282,8 @@ function Landing() {
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-5xl text-primary mb-4">Why Property Mogul?</h2>
               <p className="text-on-surface-variant max-w-xl mx-auto">
-                We're modernizing the real estate journey by removing friction and connecting people through technology.
+                We're modernizing the real estate journey by removing friction and connecting people
+                through technology.
               </p>
             </div>
 
@@ -232,12 +298,16 @@ function Landing() {
 
               <div className="glass-panel p-8 rounded-3xl flex flex-col justify-end">
                 <h3 className="text-2xl text-primary mb-2">Rapid Search</h3>
-                <p className="text-on-surface-variant">Find exactly what you're looking for with AI-driven filtering.</p>
+                <p className="text-on-surface-variant">
+                  Find exactly what you're looking for with AI-driven filtering.
+                </p>
               </div>
 
               <div className="glass-panel p-8 rounded-3xl flex flex-col justify-end">
                 <h3 className="text-2xl text-primary mb-2">Direct Connection</h3>
-                <p className="text-on-surface-variant">Communicate directly, arrange viewings, and finalize deals.</p>
+                <p className="text-on-surface-variant">
+                  Communicate directly, arrange viewings, and finalize deals.
+                </p>
               </div>
             </div>
           </div>
@@ -247,15 +317,25 @@ function Landing() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-5xl text-primary mb-4">How it Works</h2>
-              <p className="text-on-surface-variant">A seamless journey for both owners and seekers.</p>
+              <p className="text-on-surface-variant">
+                A seamless journey for both owners and seekers.
+              </p>
             </div>
 
             <div className="space-y-12 relative">
               <div className="absolute left-[24px] md:left-1/2 top-0 bottom-0 w-[2px] bg-gradient-to-b from-primary-container/50 via-secondary/50 to-transparent md:-translate-x-1/2" />
 
               {[1, 2, 3].map((n) => (
-                <div key={n} className="relative flex flex-col md:flex-row items-center gap-8 md:gap-24">
-                  <div className={`z-10 w-12 h-12 rounded-full ${n === 2 ? "bg-secondary text-on-secondary" : "bg-primary-container text-on-primary"} flex items-center justify-center font-bold border-4 border-background`}> {n} </div>
+                <div
+                  key={n}
+                  className="relative flex flex-col md:flex-row items-center gap-8 md:gap-24"
+                >
+                  <div
+                    className={`z-10 w-12 h-12 rounded-full ${n === 2 ? "bg-secondary text-on-secondary" : "bg-primary-container text-on-primary"} flex items-center justify-center font-bold border-4 border-background`}
+                  >
+                    {" "}
+                    {n}{" "}
+                  </div>
                   <div className="flex-1 md:text-left text-left">
                     <h4 className="text-primary font-bold text-lg">
                       {n === 1 ? "Create Profile" : n === 2 ? "List or Search" : "Connect & Close"}
@@ -277,10 +357,12 @@ function Landing() {
         <section className="py-32 px-6 md:px-12 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-container/5 to-transparent" />
           <div className="relative z-10 max-w-3xl mx-auto">
-            <h2 className="text-4xl md:text-6xl text-primary mb-6">Ready for a Better Experience?</h2>
+            <h2 className="text-4xl md:text-6xl text-primary mb-6">
+              Ready for a Better Experience?
+            </h2>
             <p className="text-on-surface-variant text-lg mb-12">
-              Join thousands of users already simplifying their real estate journey on Property Mogul.
-              Your next property is just a click away.
+              Join thousands of users already simplifying their real estate journey on Property
+              Mogul. Your next property is just a click away.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -300,10 +382,12 @@ function Landing() {
         </section>
       </main>
 
-      <footer id="contact" className="border-t border-border-muted py-8 text-center text-sm text-on-surface-variant">
+      <footer
+        id="contact"
+        className="border-t border-border-muted py-8 text-center text-sm text-on-surface-variant"
+      >
         © 2026 Property Mogul. Premium Real Estate Search.
       </footer>
     </div>
   );
 }
-

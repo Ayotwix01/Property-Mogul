@@ -16,5 +16,5 @@ const FIXED_REPLY =
 export const chatCompletion = createServerFn({ method: "POST" })
   .validator((data) => InputSchema.parse(data))
   .handler(async () => {
-    return { reply };
+    return { reply: FIXED_REPLY };
   });

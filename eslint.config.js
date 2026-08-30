@@ -3,14 +3,17 @@ import eslintPluginPrettier from "eslint-plugin-prettier/recommended";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
+import tsParser from "@typescript-eslint/parser";
 
 export default [
   { ignores: ["dist", ".output", ".vinxi", "node_modules"] },
+  js.configs.recommended,
   {
-    extends: [js.configs.recommended],
     files: ["**/*.{js,jsx}"],
     languageOptions: {
+      parser: tsParser,
       ecmaVersion: 2020,
+      parserOptions: { ecmaFeatures: { jsx: true } },
       globals: globals.browser,
     },
     plugins: {

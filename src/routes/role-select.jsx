@@ -18,7 +18,7 @@ export const Route = createFileRoute("/role-select")({
       },
     ],
   }),
-  component,
+  component: RoleSelectPage,
 });
 
 function Icon({ name, className = "" }) {
@@ -42,7 +42,8 @@ function RoleSelectPage() {
       // Store all selected roles (comma-separated for dual-role support)
       const currentRole = localStorage.getItem("pm_role") || "";
       const existing = currentRole ? currentRole.split(",").map((r) => r.trim().toLowerCase()) : [];
-      const merged = [...new Set([...existing, role])].join(",");
+      const selectedRoles = role === "both" ? ["owner", "seeker"] : [role];
+      const merged = [...new Set([...existing, ...selectedRoles])].join(",");
       localStorage.setItem("pm_role", merged);
     } catch {
       // ignore storage errors
@@ -73,6 +74,17 @@ function RoleSelectPage() {
         "Direct chat with owners",
       ],
     },
+    {
+      key: "both",
+      title: "I’m Both",
+      tagline: "Invest, list, and discover in one workspace.",
+      icon: "swap_horiz",
+      bullets: [
+        "Switch between owner and seeker tools",
+        "Manage listings and save favorites",
+        "Get the complete Property Mogul experience",
+      ],
+    },
   ];
 
   return (
@@ -97,12 +109,11 @@ function RoleSelectPage() {
               Step 1 of 2
             </p>
             <h1 className="font-display font-bold text-3xl sm:text-5xl mb-3 tracking-tight">
-              How will you use{" "}
-              <span className="primary-gradient-text">Property Mogul?</span>
+              How will you use <span className="primary-gradient-text">Property Mogul?</span>
             </h1>
             <p className="text-on-surface-variant max-w-xl mx-auto">
-              Your choice tailors the experience — we'll show the tools that fit you.
-              You can always switch later.
+              Your choice tailors the experience — we'll show the tools that fit you. You can always
+              switch later.
             </p>
           </div>
 
@@ -132,9 +143,7 @@ function RoleSelectPage() {
                       <Icon name={r.icon} className="text-2xl" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h2 className="font-display font-bold text-xl sm:text-2xl mb-1">
-                        {r.title}
-                      </h2>
+                      <h2 className="font-display font-bold text-xl sm:text-2xl mb-1">{r.title}</h2>
                       <p className="text-on-surface-variant text-sm">{r.tagline}</p>
                     </div>
                     <div
@@ -145,7 +154,10 @@ function RoleSelectPage() {
                       }`}
                     >
                       {selected && (
-                        <span className="material-symbols-outlined text-white text-sm" style={{ fontVariationSettings: "'FILL' 1, 'wght' 500" }}>
+                        <span
+                          className="material-symbols-outlined text-white text-sm"
+                          style={{ fontVariationSettings: "'FILL' 1, 'wght' 500" }}
+                        >
                           check
                         </span>
                       )}
@@ -153,7 +165,10 @@ function RoleSelectPage() {
                   </div>
                   <ul className="space-y-2">
                     {r.bullets.map((b) => (
-                      <li key={b} className="flex items-center gap-2 text-sm text-on-surface-variant">
+                      <li
+                        key={b}
+                        className="flex items-center gap-2 text-sm text-on-surface-variant"
+                      >
                         <Icon name="check_circle" className="text-success-cyan text-lg" />
                         {b}
                       </li>
@@ -165,8 +180,12 @@ function RoleSelectPage() {
           </div>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <Link to="/login" className="text-sm text-on-surface-variant hover:text-primary transition-colors">
-              Already have an account? <span className="text-primary-container font-semibold">Sign in</span>
+            <Link
+              to="/login"
+              className="text-sm text-on-surface-variant hover:text-primary transition-colors"
+            >
+              Already have an account?{" "}
+              <span className="text-primary-container font-semibold">Sign in</span>
             </Link>
             <button
               disabled={!role}

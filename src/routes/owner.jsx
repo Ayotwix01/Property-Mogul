@@ -35,7 +35,9 @@ function OwnerDashboard() {
 
   // Role guard: redirect if not owner
   useEffect(() => {
-    if (ready && roleState.isOwner === false && roleState.roles.length > 0) {
+    if (ready && localStorage.getItem("pm_authed") !== "1") {
+      navigate({ to: "/login" });
+    } else if (ready && roleState.isOwner === false) {
       navigate({ to: "/role-select" });
     }
   }, [ready, roleState, navigate]);
@@ -105,13 +107,22 @@ function OwnerDashboard() {
               <Link to="/owner" className="text-primary font-bold">
                 Dashboard
               </Link>
-              <Link to="/browse" className="text-on-surface-variant hover:text-primary transition-colors">
+              <Link
+                to="/browse"
+                className="text-on-surface-variant hover:text-primary transition-colors"
+              >
                 Browse
               </Link>
-              <a href="#listings" className="text-on-surface-variant hover:text-primary transition-colors">
+              <a
+                href="#listings"
+                className="text-on-surface-variant hover:text-primary transition-colors"
+              >
                 My Listings
               </a>
-              <a href="#inquiries" className="text-on-surface-variant hover:text-primary transition-colors">
+              <a
+                href="#inquiries"
+                className="text-on-surface-variant hover:text-primary transition-colors"
+              >
                 Inquiries
               </a>
             </nav>
@@ -121,7 +132,10 @@ function OwnerDashboard() {
             {/* Role switch button — only visible if user has BOTH roles */}
             {roleState.isBoth && (
               <button
-                onClick={() => { switchRole(); navigate({ to: "/seeker" }); }}
+                onClick={() => {
+                  switchRole();
+                  navigate({ to: "/seeker" });
+                }}
                 className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container/10 border border-primary-container/30 text-primary-container text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all"
                 type="button"
                 title="Switch to Seeker view"
@@ -158,7 +172,10 @@ function OwnerDashboard() {
 
       {menuOpen && (
         <div className="fixed inset-0 z-[60] md:hidden">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setMenuOpen(false)} />
+          <div
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            onClick={() => setMenuOpen(false)}
+          />
           <div className="absolute right-0 top-0 h-full w-72 bg-surface-container-lowest border-l border-border-muted p-6 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <span className="font-display font-bold text-primary">Menu</span>
@@ -178,16 +195,32 @@ function OwnerDashboard() {
             </div>
 
             <nav className="flex flex-col gap-1">
-              <Link to="/owner" onClick={() => setMenuOpen(false)} className="py-2 font-bold text-primary">
+              <Link
+                to="/owner"
+                onClick={() => setMenuOpen(false)}
+                className="py-2 font-bold text-primary"
+              >
                 Dashboard
               </Link>
-              <Link to="/browse" onClick={() => setMenuOpen(false)} className="py-2 text-on-surface-variant hover:text-primary transition-colors">
+              <Link
+                to="/browse"
+                onClick={() => setMenuOpen(false)}
+                className="py-2 text-on-surface-variant hover:text-primary transition-colors"
+              >
                 Browse
               </Link>
-              <a href="#listings" onClick={() => setMenuOpen(false)} className="py-2 text-on-surface-variant hover:text-primary transition-colors">
+              <a
+                href="#listings"
+                onClick={() => setMenuOpen(false)}
+                className="py-2 text-on-surface-variant hover:text-primary transition-colors"
+              >
                 My Listings
               </a>
-              <a href="#inquiries" onClick={() => setMenuOpen(false)} className="py-2 text-on-surface-variant hover:text-primary transition-colors">
+              <a
+                href="#inquiries"
+                onClick={() => setMenuOpen(false)}
+                className="py-2 text-on-surface-variant hover:text-primary transition-colors"
+              >
                 Inquiries
               </a>
             </nav>
@@ -196,7 +229,11 @@ function OwnerDashboard() {
             {roleState.isBoth && (
               <div className="mt-2 pt-4 border-t border-border-muted">
                 <button
-                  onClick={() => { setMenuOpen(false); switchRole(); navigate({ to: "/seeker" }); }}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    switchRole();
+                    navigate({ to: "/seeker" });
+                  }}
                   className="flex items-center gap-3 py-3 px-3 rounded-lg text-primary-container font-bold hover:bg-primary-container/10 transition-colors w-full text-left"
                   type="button"
                 >
@@ -234,13 +271,17 @@ function OwnerDashboard() {
             </div>
 
             <div className="flex flex-wrap gap-3 shrink-0">
-              <Link to="/browse"
+              <Link
+                to="/browse"
                 className="inline-flex items-center gap-2 bg-primary-container text-on-primary-container px-5 py-3 rounded-xl font-bold active:scale-95 transition-transform"
               >
                 <span className="material-symbols-outlined">add</span>
                 New listing
               </Link>
-              <Link to="/browse" className="inline-flex items-center gap-2 bg-surface-container border border-border-muted text-on-surface-variant px-5 py-3 rounded-xl font-bold hover:bg-on-surface hover:text-background transition-all">
+              <Link
+                to="/browse"
+                className="inline-flex items-center gap-2 bg-surface-container border border-border-muted text-on-surface-variant px-5 py-3 rounded-xl font-bold hover:bg-on-surface hover:text-background transition-all"
+              >
                 View marketplace
               </Link>
             </div>
@@ -249,9 +290,14 @@ function OwnerDashboard() {
 
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
           {stats.map((s) => (
-            <div key={s.label} className="bg-surface-container-lowest border border-border-muted rounded-2xl p-5">
+            <div
+              key={s.label}
+              className="bg-surface-container-lowest border border-border-muted rounded-2xl p-5"
+            >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-mono-data tracking-widest text-on-surface-variant">{s.delta}</span>
+                <span className="text-[10px] font-mono-data tracking-widest text-on-surface-variant">
+                  {s.delta}
+                </span>
               </div>
               <p className="font-display font-bold text-3xl">{s.value}</p>
               <p className="text-sm text-on-surface-variant">{s.label}</p>
@@ -281,7 +327,10 @@ function OwnerDashboard() {
             </div>
           </div>
 
-          <div id="inquiries" className="bg-surface-container-lowest border border-border-muted rounded-2xl p-6">
+          <div
+            id="inquiries"
+            className="bg-surface-container-lowest border border-border-muted rounded-2xl p-6"
+          >
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-bold text-xl">Recent inquiries</h2>
               <span className="text-xs text-primary-container">{inquiries.length} new</span>
@@ -298,7 +347,9 @@ function OwnerDashboard() {
                       <span className="text-[10px] text-on-surface-variant shrink-0">{i.when}</span>
                     </div>
                     <p className="text-xs text-on-surface-variant line-clamp-2">{i.msg}</p>
-                    <p className="text-[10px] text-primary-container mt-1 truncate">Re: {i.property.title}</p>
+                    <p className="text-[10px] text-primary-container mt-1 truncate">
+                      Re: {i.property.title}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -310,9 +361,14 @@ function OwnerDashboard() {
           <div className="flex items-end justify-between mb-6 gap-4">
             <div>
               <h2 className="font-display font-bold text-2xl sm:text-3xl">My listings</h2>
-              <p className="text-sm text-on-surface-variant">Manage, edit, and track performance.</p>
+              <p className="text-sm text-on-surface-variant">
+                Manage, edit, and track performance.
+              </p>
             </div>
-            <Link to="/browse" className="inline-flex items-center gap-2 bg-primary-container/10 border border-primary-container/30 text-primary-container px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors">
+            <Link
+              to="/browse"
+              className="inline-flex items-center gap-2 bg-primary-container/10 border border-primary-container/30 text-primary-container px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors"
+            >
               <span className="material-symbols-outlined">add</span>
               Add
             </Link>
@@ -333,7 +389,11 @@ function OwnerDashboard() {
                 className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_1fr_1fr_1fr_auto] gap-4 px-4 sm:px-6 py-4 border-b border-border-muted/60 last:border-0 items-center hover:bg-surface-container/40 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <img src={p.images?.[0]} alt={p.title} className="w-14 h-14 rounded-xl object-cover shrink-0" />
+                  <img
+                    src={p.images?.[0]}
+                    alt={p.title}
+                    className="w-14 h-14 rounded-xl object-cover shrink-0"
+                  />
                   <div className="min-w-0">
                     <p className="font-bold truncate">{p.title}</p>
                     <p className="text-xs text-on-surface-variant truncate">{p.location}</p>
@@ -356,7 +416,11 @@ function OwnerDashboard() {
                 </div>
 
                 <div className="flex items-center gap-2 md:justify-end">
-                  <Link to="/property/$id" params={{ id: p.id }} className="text-on-surface-variant hover:text-primary transition-colors">
+                  <Link
+                    to="/property/$id"
+                    params={{ id: p.id }}
+                    className="text-on-surface-variant hover:text-primary transition-colors"
+                  >
                     <span className="material-symbols-outlined">visibility</span>
                   </Link>
                   <button

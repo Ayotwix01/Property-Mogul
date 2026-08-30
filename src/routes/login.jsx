@@ -40,9 +40,7 @@ function LoginPage() {
         localStorage.setItem("pm_authed", "1");
         // If the user's email contains "owner" they get owner+seeker roles (dual-role demo)
         // Otherwise just seeker
-        const role = emailOrUser.toLowerCase().includes("owner")
-          ? "owner,seeker"
-          : "seeker";
+        const role = emailOrUser.toLowerCase().includes("owner") ? "owner,seeker" : "seeker";
         localStorage.setItem("pm_role", role);
         localStorage.setItem("pm_user_name", emailOrUser.split("@")[0]);
       } catch {
@@ -71,7 +69,12 @@ function LoginPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <main className="flex-grow flex items-stretch">
         <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-surface-container-lowest items-center justify-center">
-          <div className="absolute inset-0 z-0 opacity-25" style={{ background: "linear-gradient(135deg, rgba(0,240,255,0.7), rgba(122,92,255,0.6))" }} />
+          <div
+            className="absolute inset-0 z-0 opacity-25"
+            style={{
+              background: "linear-gradient(135deg, rgba(0,240,255,0.7), rgba(122,92,255,0.6))",
+            }}
+          />
           <div className="relative z-10 w-full max-w-xl p-12">
             <div className="glass-panel p-8 rounded-2xl space-y-6">
               <div className="flex items-center gap-4">
@@ -91,7 +94,11 @@ function LoginPage() {
                 {["₦1.42B", "12,840", "8.24%"].map((v, idx) => (
                   <div key={v} className="flex justify-between items-end">
                     <span className="text-sm text-on-surface-variant">
-                      {idx === 0 ? "Total Managed Assets" : idx === 1 ? "Verified Properties" : "Average Annual Yield"}
+                      {idx === 0
+                        ? "Total Managed Assets"
+                        : idx === 1
+                          ? "Verified Properties"
+                          : "Average Annual Yield"}
                     </span>
                     <span
                       className={`font-mono-data text-sm ${idx === 0 || idx === 2 ? "text-success-cyan" : "text-on-surface"}`}
@@ -126,7 +133,9 @@ function LoginPage() {
                     Email or Username
                   </label>
                   <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container border border-border-muted focus-within:border-primary-container transition">
-                    <span className="material-symbols-outlined text-on-surface-variant text-lg">person</span>
+                    <span className="material-symbols-outlined text-on-surface-variant text-lg">
+                      person
+                    </span>
                     <input
                       className="bg-transparent outline-none w-full text-on-surface placeholder:text-outline"
                       id="email"
@@ -146,7 +155,8 @@ function LoginPage() {
                       className="font-label-caps text-[11px] tracking-widest text-on-surface-variant uppercase"
                       htmlFor="password"
                     >
-                      Password <span className="font-mono-data text-on-surface-variant">({pwLength})</span>
+                      Password{" "}
+                      <span className="font-mono-data text-on-surface-variant">({pwLength})</span>
                     </label>
                     <a
                       href="#"
@@ -156,7 +166,9 @@ function LoginPage() {
                     </a>
                   </div>
                   <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container border border-border-muted focus-within:border-primary-container transition">
-                    <span className="material-symbols-outlined text-on-surface-variant text-lg">lock</span>
+                    <span className="material-symbols-outlined text-on-surface-variant text-lg">
+                      lock
+                    </span>
                     <input
                       className="bg-transparent outline-none w-full text-on-surface placeholder:text-outline"
                       id="password"
@@ -172,7 +184,9 @@ function LoginPage() {
                       onClick={() => setShowPw(!showPw)}
                       className="text-on-surface-variant hover:text-on-surface"
                     >
-                      <span className="material-symbols-outlined text-lg">{showPw ? "visibility_off" : "visibility"}</span>
+                      <span className="material-symbols-outlined text-lg">
+                        {showPw ? "visibility_off" : "visibility"}
+                      </span>
                     </button>
                   </div>
                   {/* Password requirements checklist */}
@@ -183,8 +197,14 @@ function LoginPage() {
                       { ok: pwHasLower, label: "One lowercase letter" },
                       { ok: pwHasNumber, label: "One number" },
                     ].map((r) => (
-                      <div key={r.label} className={`flex items-center gap-1.5 text-xs ${r.ok ? "text-success-cyan" : "text-on-surface-variant"}`}>
-                        <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: `'FILL' ${r.ok ? 1 : 0}, 'wght' 500` }}>
+                      <div
+                        key={r.label}
+                        className={`flex items-center gap-1.5 text-xs ${r.ok ? "text-success-cyan" : "text-on-surface-variant"}`}
+                      >
+                        <span
+                          className="material-symbols-outlined text-sm"
+                          style={{ fontVariationSettings: `'FILL' ${r.ok ? 1 : 0}, 'wght' 500` }}
+                        >
                           {r.ok ? "check_circle" : "radio_button_unchecked"}
                         </span>
                         {r.label}
@@ -201,7 +221,9 @@ function LoginPage() {
               >
                 {loggingIn ? (
                   <>
-                    <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                    <span className="material-symbols-outlined animate-spin">
+                      progress_activity
+                    </span>
                     Signing in...
                   </>
                 ) : (
@@ -215,7 +237,10 @@ function LoginPage() {
 
             <p className="text-center text-sm text-on-surface-variant">
               New to the platform?{" "}
-              <Link to="/signup" className="text-primary-container hover:text-primary transition-colors">
+              <Link
+                to="/signup"
+                className="text-primary-container hover:text-primary transition-colors"
+              >
                 Create an institutional account
               </Link>
             </p>
@@ -225,9 +250,10 @@ function LoginPage() {
 
       <footer className="w-full py-6 px-5 md:px-16 flex flex-col md:flex-row justify-between items-center gap-3 border-t border-border-muted bg-surface-container-lowest z-20">
         <span className="font-display font-bold text-primary">Property Mogul</span>
-        <p className="text-xs text-on-surface-variant">© 2026 Property Mogul. All rights reserved.</p>
+        <p className="text-xs text-on-surface-variant">
+          © 2026 Property Mogul. All rights reserved.
+        </p>
       </footer>
     </div>
   );
 }
-

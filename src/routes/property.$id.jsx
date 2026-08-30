@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 
 import { AiChatWidget } from "@/components/ai-chat-widget";
@@ -48,7 +48,6 @@ export const Route = createFileRoute("/property/$id")({
 function PropertyDetailPage() {
   const ready = usePreload(400);
   const { property } = Route.useLoaderData();
-  const navigate = useNavigate();
 
   const [tab, setTab] = useState("description");
   const [activeImage, setActiveImage] = useState(0);
@@ -79,7 +78,10 @@ function PropertyDetailPage() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">
-            <Link to="/browse" className="text-on-surface-variant hover:text-primary transition-colors">
+            <Link
+              to="/browse"
+              className="text-on-surface-variant hover:text-primary transition-colors"
+            >
               Properties
             </Link>
             <a className="text-on-surface-variant hover:text-primary transition-colors" href="#">
@@ -100,7 +102,10 @@ function PropertyDetailPage() {
               <span className="material-symbols-outlined">smart_toy</span>
             </button>
 
-            <Link to="/browse" className="hidden md:inline-flex text-on-surface-variant hover:text-primary transition-colors">
+            <Link
+              to="/browse"
+              className="hidden md:inline-flex text-on-surface-variant hover:text-primary transition-colors"
+            >
               Browse
             </Link>
           </div>
@@ -109,7 +114,10 @@ function PropertyDetailPage() {
 
       <main className="pt-24 pb-20 px-5 md:px-16 max-w-[1400px] mx-auto w-full flex-1">
         <div className="mb-6">
-          <Link to="/browse" className="text-on-surface-variant hover:text-primary transition-colors">
+          <Link
+            to="/browse"
+            className="text-on-surface-variant hover:text-primary transition-colors"
+          >
             Back to browse
           </Link>
         </div>
@@ -134,7 +142,9 @@ function PropertyDetailPage() {
               </span>
             </div>
 
-            <h1 className="font-display font-bold text-3xl sm:text-5xl mb-2 tracking-tight">{property.title}</h1>
+            <h1 className="font-display font-bold text-3xl sm:text-5xl mb-2 tracking-tight">
+              {property.title}
+            </h1>
 
             <div className="flex items-center gap-2 text-on-surface-variant min-w-0">
               <span className="truncate">{property.address}</span>
@@ -143,13 +153,21 @@ function PropertyDetailPage() {
 
           <div className="flex gap-3 shrink-0">
             <div className="glass-panel p-4 rounded-xl text-center min-w-[120px]">
-              <p className="text-[10px] tracking-widest uppercase text-on-surface-variant mb-1">Price</p>
-              <p className="font-mono-data text-xl text-primary-container font-bold">{property.price}</p>
+              <p className="text-[10px] tracking-widest uppercase text-on-surface-variant mb-1">
+                Price
+              </p>
+              <p className="font-mono-data text-xl text-primary-container font-bold">
+                {property.price}
+              </p>
               <p className="text-[10px] text-on-surface-variant mt-0.5">{property.priceUnit}</p>
             </div>
             <div className="glass-panel p-4 rounded-xl text-center min-w-[120px]">
-              <p className="text-[10px] tracking-widest uppercase text-on-surface-variant mb-1">Total Units</p>
-              <p className="font-mono-data text-xl text-primary-container font-bold">{property.totalUnits}</p>
+              <p className="text-[10px] tracking-widest uppercase text-on-surface-variant mb-1">
+                Total Units
+              </p>
+              <p className="font-mono-data text-xl text-primary-container font-bold">
+                {property.totalUnits}
+              </p>
             </div>
           </div>
         </div>
@@ -228,7 +246,9 @@ function PropertyDetailPage() {
                       ["CERTIFICATION", property.certification],
                     ].map(([label, value]) => (
                       <div key={label} className="flex flex-col">
-                        <span className="text-[10px] tracking-widest uppercase text-on-surface-variant">{label}</span>
+                        <span className="text-[10px] tracking-widest uppercase text-on-surface-variant">
+                          {label}
+                        </span>
                         <span className="font-mono-data text-on-surface">{value}</span>
                       </div>
                     ))}
@@ -239,7 +259,10 @@ function PropertyDetailPage() {
               {tab === "features" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {property.specs?.map((s) => (
-                    <div key={s.label} className="flex items-center gap-3 p-4 rounded-xl bg-surface-container border border-border-muted">
+                    <div
+                      key={s.label}
+                      className="flex items-center gap-3 p-4 rounded-xl bg-surface-container border border-border-muted"
+                    >
                       <span>{s.label}</span>
                     </div>
                   ))}
@@ -266,13 +289,14 @@ function PropertyDetailPage() {
                 />
               </div>
               <div className="mt-4 flex items-center gap-2 text-sm text-on-surface-variant">
-                Traffic Score: <span className="text-on-surface font-bold">85</span> (Commuter's Hub)
+                Traffic Score: <span className="text-on-surface font-bold">85</span> (Commuter's
+                Hub)
               </div>
             </div>
           </div>
 
           <aside className="lg:col-span-4 space-y-6">
-<div className="glass-panel p-6 sm:p-8 rounded-2xl border-primary-container/20">
+            <div className="glass-panel p-6 sm:p-8 rounded-2xl border-primary-container/20">
               <h3 className="text-xl font-bold mb-5">Take the Next Step</h3>
               <div className="space-y-3">
                 <button
@@ -286,8 +310,17 @@ function PropertyDetailPage() {
                   type="button"
                   onClick={() => {
                     const subject = encodeURIComponent("Inquiry: " + property.title);
-                    const body = encodeURIComponent("Hello, I'm interested in " + property.title + " located at " + property.address + ". Please provide more details.");
-                    window.open(`mailto:${property.owner?.email || "owner@propertymogul.com"}?subject=${subject}&body=${body}`, "_blank");
+                    const body = encodeURIComponent(
+                      "Hello, I'm interested in " +
+                        property.title +
+                        " located at " +
+                        property.address +
+                        ". Please provide more details.",
+                    );
+                    window.open(
+                      `mailto:${property.owner?.email || "owner@propertymogul.com"}?subject=${subject}&body=${body}`,
+                      "_blank",
+                    );
                   }}
                   className="w-full py-3.5 rounded-xl font-bold text-primary-container border border-primary-container hover:bg-primary-container/10 active:scale-[0.99] transition"
                 >
@@ -296,7 +329,9 @@ function PropertyDetailPage() {
               </div>
 
               <div className="pt-6 mt-6 border-t border-border-muted">
-                <p className="text-[10px] tracking-widest uppercase text-on-surface-variant mb-3">Contact Owner</p>
+                <p className="text-[10px] tracking-widest uppercase text-on-surface-variant mb-3">
+                  Contact Owner
+                </p>
                 <div className="flex items-start gap-3 mb-5">
                   <div className="w-12 h-12 shrink-0 rounded-full bg-surface-container-high flex items-center justify-center border border-border-muted text-primary-container font-bold text-lg">
                     {property.owner?.name?.charAt(0) || "O"}
@@ -304,10 +339,16 @@ function PropertyDetailPage() {
                   <div className="min-w-0">
                     <p className="font-bold truncate">{property.owner?.name}</p>
                     <p className="text-xs text-on-surface-variant">{property.owner?.title}</p>
-                    <a href={`tel:${property.owner?.phone}`} className="text-xs text-primary-container hover:underline block truncate">
+                    <a
+                      href={`tel:${property.owner?.phone}`}
+                      className="text-xs text-primary-container hover:underline block truncate"
+                    >
                       {property.owner?.phone}
                     </a>
-                    <a href={`mailto:${property.owner?.email}`} className="text-xs text-on-surface-variant hover:text-primary-container block truncate">
+                    <a
+                      href={`mailto:${property.owner?.email}`}
+                      className="text-xs text-on-surface-variant hover:text-primary-container block truncate"
+                    >
                       {property.owner?.email}
                     </a>
                   </div>
@@ -321,7 +362,10 @@ function PropertyDetailPage() {
                     setMessageSent(true);
                     const subject = encodeURIComponent("Inquiry: " + property.title);
                     const body = encodeURIComponent(messageText + "\n\n-- Sent via Property Mogul");
-                    window.open(`mailto:${property.owner?.email || "owner@propertymogul.com"}?subject=${subject}&body=${body}`, "_blank");
+                    window.open(
+                      `mailto:${property.owner?.email || "owner@propertymogul.com"}?subject=${subject}&body=${body}`,
+                      "_blank",
+                    );
                     setTimeout(() => {
                       setMessageText("");
                       setMessageSent(false);
@@ -349,11 +393,18 @@ function PropertyDetailPage() {
             {/* Tour modal */}
             {tourModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setTourModalOpen(false)} />
+                <div
+                  className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+                  onClick={() => setTourModalOpen(false)}
+                />
                 <div className="relative bg-surface-container-lowest border border-border-muted rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-bold">Schedule a Tour</h3>
-                    <button type="button" onClick={() => setTourModalOpen(false)} className="p-1 rounded-lg hover:bg-surface-container transition-colors">
+                    <button
+                      type="button"
+                      onClick={() => setTourModalOpen(false)}
+                      className="p-1 rounded-lg hover:bg-surface-container transition-colors"
+                    >
                       <span className="material-symbols-outlined">close</span>
                     </button>
                   </div>
@@ -365,9 +416,18 @@ function PropertyDetailPage() {
                       const time = formData.get("tour-time");
                       const subject = encodeURIComponent("Tour Request: " + property.title);
                       const body = encodeURIComponent(
-                        "Hello, I would like to schedule a tour for " + property.title + ".\n\nPreferred date: " + date + "\nPreferred time: " + time + "\n\n-- Sent via Property Mogul"
+                        "Hello, I would like to schedule a tour for " +
+                          property.title +
+                          ".\n\nPreferred date: " +
+                          date +
+                          "\nPreferred time: " +
+                          time +
+                          "\n\n-- Sent via Property Mogul",
                       );
-                      window.open(`mailto:${property.owner?.email || "owner@propertymogul.com"}?subject=${subject}&body=${body}`, "_blank");
+                      window.open(
+                        `mailto:${property.owner?.email || "owner@propertymogul.com"}?subject=${subject}&body=${body}`,
+                        "_blank",
+                      );
                       setTourModalOpen(false);
                     }}
                     className="space-y-4"
@@ -402,7 +462,9 @@ function PropertyDetailPage() {
             )}
 
             <div className="glass-panel p-6 rounded-2xl space-y-3">
-              <h4 className="text-[10px] tracking-widest uppercase text-on-surface-variant">Quick Links</h4>
+              <h4 className="text-[10px] tracking-widest uppercase text-on-surface-variant">
+                Quick Links
+              </h4>
               {[
                 { title: "Floor Plans & Pricing", sub: "Available Models" },
                 { title: "Neighborhood Guide", sub: "Local amenities" },
@@ -419,7 +481,9 @@ function PropertyDetailPage() {
                       <p className="text-xs text-on-surface-variant">{q.sub}</p>
                     </div>
                   </div>
-                  <span className="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                  <span className="material-symbols-outlined text-on-surface-variant">
+                    chevron_right
+                  </span>
                 </button>
               ))}
             </div>
@@ -430,16 +494,29 @@ function PropertyDetailPage() {
           <h2 className="font-display font-bold text-2xl sm:text-3xl mb-6">Similar properties</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {others.map((p) => (
-              <div key={p.id} className="bg-surface-container-lowest rounded-2xl overflow-hidden border border-border-muted">
+              <div
+                key={p.id}
+                className="bg-surface-container-lowest rounded-2xl overflow-hidden border border-border-muted"
+              >
                 <div className="h-48 overflow-hidden">
-                  <img src={p.images?.[0]} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img
+                    src={p.images?.[0]}
+                    alt={p.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
                 <div className="p-5">
-                  <h3 className="font-bold mb-1 group-hover:text-primary-container transition-colors">{p.title}</h3>
+                  <h3 className="font-bold mb-1 group-hover:text-primary-container transition-colors">
+                    {p.title}
+                  </h3>
                   <p className="text-sm text-on-surface-variant truncate">{p.location}</p>
                   <p className="mt-3 font-mono-data text-primary-container font-bold">{p.price}</p>
                   <div className="mt-4">
-                    <Link to="/property/$id" params={{ id: p.id }} className="inline-flex items-center gap-2 text-primary-container hover:underline">
+                    <Link
+                      to="/property/$id"
+                      params={{ id: p.id }}
+                      className="inline-flex items-center gap-2 text-primary-container hover:underline"
+                    >
                       View
                       <span className="material-symbols-outlined">open_in_new</span>
                     </Link>
@@ -459,4 +536,3 @@ function PropertyDetailPage() {
     </div>
   );
 }
-
