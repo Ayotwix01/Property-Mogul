@@ -259,9 +259,6 @@ function Landing() {
           </nav>
 
           <div className="flex items-center gap-1 sm:gap-2">
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
             <Link
               to="/login"
               className="hidden md:inline-flex px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary hover:bg-white/5 transition-colors font-medium"
@@ -274,6 +271,8 @@ function Landing() {
             >
               Get Started
             </Link>
+
+            <ThemeToggle className="md:ml-1" />
 
             <button
               type="button"
@@ -324,7 +323,6 @@ function Landing() {
               Contact
             </a>
             <div className="flex items-center gap-2 pt-3 mt-2 border-t border-border-muted">
-              <ThemeToggle />
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
