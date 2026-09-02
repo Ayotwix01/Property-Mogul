@@ -9,17 +9,35 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SeekerRouteImport } from './routes/seeker'
 import { Route as RoleSelectRouteImport } from './routes/role-select'
 import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OwnerRouteImport } from './routes/owner'
+import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as BrowseRouteImport } from './routes/browse'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ResourcesSlugRouteImport } from './routes/resources.$slug'
 import { Route as PropertyIdRouteImport } from './routes/property.$id'
+import { Route as PaymentCallbackRouteImport } from './routes/payment.callback'
+import { Route as OwnerListingsNewRouteImport } from './routes/owner.listings.new'
+import { Route as AuthGoogleCompleteRouteImport } from './routes/auth.google.complete'
+import { Route as AuthGoogleCallbackRouteImport } from './routes/auth.google.callback'
+import { Route as ApiVerificationWebhookRouteImport } from './routes/api.verification.webhook'
+import { Route as OwnerListingsIdEditRouteImport } from './routes/owner.listings.$id.edit'
+import { Route as ApiPaymentsPaystackWebhookRouteImport } from './routes/api.payments.paystack.webhook'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -40,9 +58,24 @@ const ResourcesRoute = ResourcesRouteImport.update({
   path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OwnerRoute = OwnerRouteImport.update({
   id: '/owner',
   path: '/owner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -60,108 +93,249 @@ const BrowseRoute = BrowseRouteImport.update({
   path: '/browse',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesSlugRoute = ResourcesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ResourcesRoute,
 } as any)
 const PropertyIdRoute = PropertyIdRouteImport.update({
   id: '/property/$id',
   path: '/property/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaymentCallbackRoute = PaymentCallbackRouteImport.update({
+  id: '/payment/callback',
+  path: '/payment/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OwnerListingsNewRoute = OwnerListingsNewRouteImport.update({
+  id: '/listings/new',
+  path: '/listings/new',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const AuthGoogleCompleteRoute = AuthGoogleCompleteRouteImport.update({
+  id: '/auth/google/complete',
+  path: '/auth/google/complete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
+  id: '/auth/google/callback',
+  path: '/auth/google/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVerificationWebhookRoute = ApiVerificationWebhookRouteImport.update({
+  id: '/api/verification/webhook',
+  path: '/api/verification/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OwnerListingsIdEditRoute = OwnerListingsIdEditRouteImport.update({
+  id: '/listings/$id/edit',
+  path: '/listings/$id/edit',
+  getParentRoute: () => OwnerRoute,
+} as any)
+const ApiPaymentsPaystackWebhookRoute =
+  ApiPaymentsPaystackWebhookRouteImport.update({
+    id: '/api/payments/paystack/webhook',
+    path: '/api/payments/paystack/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/browse': typeof BrowseRoute
   '/favorites': typeof FavoritesRoute
   '/login': typeof LoginRoute
-  '/owner': typeof OwnerRoute
-  '/resources': typeof ResourcesRoute
+  '/messages': typeof MessagesRoute
+  '/owner': typeof OwnerRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/profile': typeof ProfileRoute
+  '/resources': typeof ResourcesRouteWithChildren
   '/role-select': typeof RoleSelectRoute
   '/seeker': typeof SeekerRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
+  '/payment/callback': typeof PaymentCallbackRoute
   '/property/$id': typeof PropertyIdRoute
+  '/resources/$slug': typeof ResourcesSlugRoute
+  '/api/verification/webhook': typeof ApiVerificationWebhookRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/auth/google/complete': typeof AuthGoogleCompleteRoute
+  '/owner/listings/new': typeof OwnerListingsNewRoute
+  '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
+  '/owner/listings/$id/edit': typeof OwnerListingsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/browse': typeof BrowseRoute
   '/favorites': typeof FavoritesRoute
   '/login': typeof LoginRoute
-  '/owner': typeof OwnerRoute
-  '/resources': typeof ResourcesRoute
+  '/messages': typeof MessagesRoute
+  '/owner': typeof OwnerRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/profile': typeof ProfileRoute
+  '/resources': typeof ResourcesRouteWithChildren
   '/role-select': typeof RoleSelectRoute
   '/seeker': typeof SeekerRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
+  '/payment/callback': typeof PaymentCallbackRoute
   '/property/$id': typeof PropertyIdRoute
+  '/resources/$slug': typeof ResourcesSlugRoute
+  '/api/verification/webhook': typeof ApiVerificationWebhookRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/auth/google/complete': typeof AuthGoogleCompleteRoute
+  '/owner/listings/new': typeof OwnerListingsNewRoute
+  '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
+  '/owner/listings/$id/edit': typeof OwnerListingsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/browse': typeof BrowseRoute
   '/favorites': typeof FavoritesRoute
   '/login': typeof LoginRoute
-  '/owner': typeof OwnerRoute
-  '/resources': typeof ResourcesRoute
+  '/messages': typeof MessagesRoute
+  '/owner': typeof OwnerRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/profile': typeof ProfileRoute
+  '/resources': typeof ResourcesRouteWithChildren
   '/role-select': typeof RoleSelectRoute
   '/seeker': typeof SeekerRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
+  '/payment/callback': typeof PaymentCallbackRoute
   '/property/$id': typeof PropertyIdRoute
+  '/resources/$slug': typeof ResourcesSlugRoute
+  '/api/verification/webhook': typeof ApiVerificationWebhookRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/auth/google/complete': typeof AuthGoogleCompleteRoute
+  '/owner/listings/new': typeof OwnerListingsNewRoute
+  '/api/payments/paystack/webhook': typeof ApiPaymentsPaystackWebhookRoute
+  '/owner/listings/$id/edit': typeof OwnerListingsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/browse'
     | '/favorites'
     | '/login'
+    | '/messages'
     | '/owner'
+    | '/privacy'
+    | '/profile'
     | '/resources'
     | '/role-select'
     | '/seeker'
     | '/signup'
+    | '/terms'
+    | '/payment/callback'
     | '/property/$id'
+    | '/resources/$slug'
+    | '/api/verification/webhook'
+    | '/auth/google/callback'
+    | '/auth/google/complete'
+    | '/owner/listings/new'
+    | '/api/payments/paystack/webhook'
+    | '/owner/listings/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/browse'
     | '/favorites'
     | '/login'
+    | '/messages'
     | '/owner'
+    | '/privacy'
+    | '/profile'
     | '/resources'
     | '/role-select'
     | '/seeker'
     | '/signup'
+    | '/terms'
+    | '/payment/callback'
     | '/property/$id'
+    | '/resources/$slug'
+    | '/api/verification/webhook'
+    | '/auth/google/callback'
+    | '/auth/google/complete'
+    | '/owner/listings/new'
+    | '/api/payments/paystack/webhook'
+    | '/owner/listings/$id/edit'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/browse'
     | '/favorites'
     | '/login'
+    | '/messages'
     | '/owner'
+    | '/privacy'
+    | '/profile'
     | '/resources'
     | '/role-select'
     | '/seeker'
     | '/signup'
+    | '/terms'
+    | '/payment/callback'
     | '/property/$id'
+    | '/resources/$slug'
+    | '/api/verification/webhook'
+    | '/auth/google/callback'
+    | '/auth/google/complete'
+    | '/owner/listings/new'
+    | '/api/payments/paystack/webhook'
+    | '/owner/listings/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   BrowseRoute: typeof BrowseRoute
   FavoritesRoute: typeof FavoritesRoute
   LoginRoute: typeof LoginRoute
-  OwnerRoute: typeof OwnerRoute
-  ResourcesRoute: typeof ResourcesRoute
+  MessagesRoute: typeof MessagesRoute
+  OwnerRoute: typeof OwnerRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
+  ProfileRoute: typeof ProfileRoute
+  ResourcesRoute: typeof ResourcesRouteWithChildren
   RoleSelectRoute: typeof RoleSelectRoute
   SeekerRoute: typeof SeekerRoute
   SignupRoute: typeof SignupRoute
+  TermsRoute: typeof TermsRoute
+  PaymentCallbackRoute: typeof PaymentCallbackRoute
   PropertyIdRoute: typeof PropertyIdRoute
+  ApiVerificationWebhookRoute: typeof ApiVerificationWebhookRoute
+  AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
+  AuthGoogleCompleteRoute: typeof AuthGoogleCompleteRoute
+  ApiPaymentsPaystackWebhookRoute: typeof ApiPaymentsPaystackWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -190,11 +364,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/owner': {
       id: '/owner'
       path: '/owner'
       fullPath: '/owner'
       preLoaderRoute: typeof OwnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -218,12 +413,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BrowseRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/resources/$slug': {
+      id: '/resources/$slug'
+      path: '/$slug'
+      fullPath: '/resources/$slug'
+      preLoaderRoute: typeof ResourcesSlugRouteImport
+      parentRoute: typeof ResourcesRoute
     }
     '/property/$id': {
       id: '/property/$id'
@@ -232,20 +441,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PropertyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/payment/callback': {
+      id: '/payment/callback'
+      path: '/payment/callback'
+      fullPath: '/payment/callback'
+      preLoaderRoute: typeof PaymentCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/owner/listings/new': {
+      id: '/owner/listings/new'
+      path: '/listings/new'
+      fullPath: '/owner/listings/new'
+      preLoaderRoute: typeof OwnerListingsNewRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/auth/google/complete': {
+      id: '/auth/google/complete'
+      path: '/auth/google/complete'
+      fullPath: '/auth/google/complete'
+      preLoaderRoute: typeof AuthGoogleCompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/google/callback': {
+      id: '/auth/google/callback'
+      path: '/auth/google/callback'
+      fullPath: '/auth/google/callback'
+      preLoaderRoute: typeof AuthGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/verification/webhook': {
+      id: '/api/verification/webhook'
+      path: '/api/verification/webhook'
+      fullPath: '/api/verification/webhook'
+      preLoaderRoute: typeof ApiVerificationWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/owner/listings/$id/edit': {
+      id: '/owner/listings/$id/edit'
+      path: '/listings/$id/edit'
+      fullPath: '/owner/listings/$id/edit'
+      preLoaderRoute: typeof OwnerListingsIdEditRouteImport
+      parentRoute: typeof OwnerRoute
+    }
+    '/api/payments/paystack/webhook': {
+      id: '/api/payments/paystack/webhook'
+      path: '/api/payments/paystack/webhook'
+      fullPath: '/api/payments/paystack/webhook'
+      preLoaderRoute: typeof ApiPaymentsPaystackWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface OwnerRouteChildren {
+  OwnerListingsNewRoute: typeof OwnerListingsNewRoute
+  OwnerListingsIdEditRoute: typeof OwnerListingsIdEditRoute
+}
+
+const OwnerRouteChildren: OwnerRouteChildren = {
+  OwnerListingsNewRoute: OwnerListingsNewRoute,
+  OwnerListingsIdEditRoute: OwnerListingsIdEditRoute,
+}
+
+const OwnerRouteWithChildren = OwnerRoute._addFileChildren(OwnerRouteChildren)
+
+interface ResourcesRouteChildren {
+  ResourcesSlugRoute: typeof ResourcesSlugRoute
+}
+
+const ResourcesRouteChildren: ResourcesRouteChildren = {
+  ResourcesSlugRoute: ResourcesSlugRoute,
+}
+
+const ResourcesRouteWithChildren = ResourcesRoute._addFileChildren(
+  ResourcesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   BrowseRoute: BrowseRoute,
   FavoritesRoute: FavoritesRoute,
   LoginRoute: LoginRoute,
-  OwnerRoute: OwnerRoute,
-  ResourcesRoute: ResourcesRoute,
+  MessagesRoute: MessagesRoute,
+  OwnerRoute: OwnerRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
+  ProfileRoute: ProfileRoute,
+  ResourcesRoute: ResourcesRouteWithChildren,
   RoleSelectRoute: RoleSelectRoute,
   SeekerRoute: SeekerRoute,
   SignupRoute: SignupRoute,
+  TermsRoute: TermsRoute,
+  PaymentCallbackRoute: PaymentCallbackRoute,
   PropertyIdRoute: PropertyIdRoute,
+  ApiVerificationWebhookRoute: ApiVerificationWebhookRoute,
+  AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
+  AuthGoogleCompleteRoute: AuthGoogleCompleteRoute,
+  ApiPaymentsPaystackWebhookRoute: ApiPaymentsPaystackWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

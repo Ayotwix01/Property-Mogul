@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { guides } from "@/lib/resources";
 
 export const Route = createFileRoute("/resources")({
   head: () => ({
@@ -22,39 +23,6 @@ export const Route = createFileRoute("/resources")({
   }),
   component: ResourcesPage,
 });
-
-const guides = [
-  {
-    icon: "account_balance",
-    title: "Financing 101",
-    body: "Mortgages, mortgage bank options in Nigeria, and how to budget your down payment.",
-  },
-  {
-    icon: "gavel",
-    title: "Tenancy Law Basics",
-    body: "Understand the Lagos and FCT tenancy acts before you sign a lease.",
-  },
-  {
-    icon: "location_searching",
-    title: "Neighborhood Safety",
-    body: "How to vet an area — commute, security, utilities, and community.",
-  },
-  {
-    icon: "visibility",
-    title: "The Perfect Viewing",
-    body: "A checklist of things to inspect and questions to ask on your first walk-through.",
-  },
-  {
-    icon: "trending_up",
-    title: "Investing for Yield",
-    body: "Cap rates, rental demand, and how to spot an under-priced listing.",
-  },
-  {
-    icon: "handshake",
-    title: "Closing the Deal",
-    body: "Legal costs, agent fees, and the paperwork you should never sign without a lawyer.",
-  },
-];
 
 function ResourcesPage() {
   return (
@@ -85,7 +53,7 @@ function ResourcesPage() {
             Buy smarter. Rent safer.
           </h1>
           <p className="text-on-surface-variant text-lg">
-            Practical guides written by our team of agents, lawyers, and mortgage brokers.
+            Practical guides for safer property decisions in Nigeria.
           </p>
         </div>
 
@@ -95,12 +63,21 @@ function ResourcesPage() {
               key={g.title}
               className="group bg-surface-container-lowest border border-border-muted rounded-3xl p-6 hover:border-primary-container/30 transition-colors"
             >
-              <div className="w-12 h-12 rounded-2xl bg-primary-container/10 border border-primary-container/30 text-primary-container grid place-items-center mb-4 group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors"></div>
+              <div
+                className="w-12 h-12 rounded-2xl bg-primary-container/10 border border-primary-container/30 text-primary-container grid place-items-center mb-4 group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors"
+                aria-hidden="true"
+              >
+                ✓
+              </div>
               <h2 className="font-display font-bold text-xl mb-2">{g.title}</h2>
-              <p className="text-sm text-on-surface-variant">{g.body}</p>
-              <button className="mt-4 text-sm font-bold text-primary-container hover:underline">
+              <p className="text-sm text-on-surface-variant">{g.summary}</p>
+              <Link
+                to="/resources/$slug"
+                params={{ slug: g.slug }}
+                className="mt-4 inline-block text-sm font-bold text-primary-container hover:underline"
+              >
                 Read guide →
-              </button>
+              </Link>
             </article>
           ))}
         </div>

@@ -1,25 +1,42 @@
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { currentUser, logout as logoutUser } from "@/lib/auth.functions";
 
 export function useAuth() {
   const [authed, setAuthed] = useState(false);
+  const [userId, setUserId] = useState(null);
   const [name, setName] = useState(null);
+  const [ready, setReady] = useState(false);
+  const getUser = useServerFn(currentUser);
+  const signOutUser = useServerFn(logoutUser);
 
   useEffect(() => {
-    const read = () => {
+    let active = true;
+    const read = async () => {
       try {
-        setAuthed(localStorage.getItem("pm_authed") === "1");
-        setName(localStorage.getItem("pm_user_name"));
+        const user = await getUser();
+        if (!active) return;
+        setAuthed(Boolean(user));
+        setUserId(user?.id || null);
+        setName(user?.profile?.displayName || user?.email?.split("@")[0] || null);
       } catch {
+        if (!active) return;
         setAuthed(false);
+        setUserId(null);
+        setName(null);
+      } finally {
+        if (active) setReady(true);
       }
     };
-    read();
-    window.addEventListener("storage", read);
-    return () => window.removeEventListener("storage", read);
-  }, []);
+    void read();
+    return () => {
+      active = false;
+    };
+  }, [getUser]);
 
-  const signOut = () => {
+  const signOut = async () => {
     try {
+      await signOutUser();
       localStorage.removeItem("pm_authed");
       localStorage.removeItem("pm_user_name");
       localStorage.removeItem("pm_role");
@@ -27,10 +44,11 @@ export function useAuth() {
       /* noop */
     }
     setAuthed(false);
+    setUserId(null);
     setName(null);
   };
 
-  return { authed, name, signOut };
+  return { authed, name, ready, signOut, userId };
 }
 
 /**
@@ -71,14 +89,55 @@ export function getRoles() {
  * React hook that listens for role changes.
  */
 export function useRole() {
-  const [roleState, setRoleState] = useState(getRoles);
+  const [roleState, setRoleState] = useState({
+    roles: [],
+    isSeeker: false,
+    isOwner: false,
+    isBoth: false,
+    current: null,
+    trustStatus: "NOT_STARTED",
+    ready: false,
+  });
+  const getUser = useServerFn(currentUser);
 
   useEffect(() => {
-    const update = () => setRoleState(getRoles());
-    update();
-    window.addEventListener("storage", update);
-    return () => window.removeEventListener("storage", update);
-  }, []);
+    let active = true;
+    const update = async () => {
+      try {
+        const user = await getUser();
+        if (!active) return;
+        const roles = (user?.roles || []).map((role) => role.toLowerCase());
+        const isSeeker = roles.includes("seeker");
+        const isOwner = roles.includes("landlord");
+        const isBoth = isSeeker && isOwner;
+        const activeRole = localStorage.getItem("pm_active_role");
+        setRoleState({
+          roles,
+          isSeeker,
+          isOwner,
+          isBoth,
+          current:
+            isBoth && (activeRole === "owner" || activeRole === "seeker")
+              ? activeRole
+              : isOwner
+                ? "owner"
+                : isSeeker
+                  ? "seeker"
+                  : null,
+          trustStatus: user?.profile?.trustStatus || "NOT_STARTED",
+          ready: true,
+        });
+      } catch {
+        if (active) {
+          setRoleState((current) => ({ ...current, ready: true }));
+        }
+      }
+    };
+    void update();
+    return () => {
+      active = false;
+    };
+  }, [getUser]);
 
   return roleState;
 }

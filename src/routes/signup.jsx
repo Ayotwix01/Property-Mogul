@@ -2,6 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useServerFn } from "@tanstack/react-start";
+import { register } from "@/lib/auth.functions";
+import { startGoogleOAuth } from "@/lib/google-oauth.functions";
 
 const signupSearchSchema = z.object({
   role: z.enum(["owner", "seeker", "both"]).optional(),
@@ -39,6 +42,11 @@ function SignupPage() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [error, setError] = useState("");
+  const registerUser = useServerFn(register);
+  const beginGoogle = useServerFn(startGoogleOAuth);
+  const [googleStarting, setGoogleStarting] = useState(false);
 
   const roleLabel =
     role === "owner"
@@ -55,10 +63,22 @@ function SignupPage() {
   const pwHasNumber = /[0-9]/.test(password);
   const pwValid = pwLength >= 8 && pwHasUpper && pwHasLower && pwHasNumber;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!pwValid) return;
+    if (!pwValid || !termsAccepted) return;
+    setError("");
+    const selectedRoles =
+      role === "owner" ? ["LANDLORD"] : role === "both" ? ["LANDLORD", "SEEKER"] : ["SEEKER"];
     try {
+      await registerUser({
+        data: {
+          email,
+          password,
+          displayName: name,
+          roles: selectedRoles,
+          termsAccepted: true,
+        },
+      });
       if (role) {
         // Merge role with any existing roles (supports dual-role)
         const currentRole = localStorage.getItem("pm_role") || "";
@@ -70,14 +90,37 @@ function SignupPage() {
         localStorage.setItem("pm_role", merged);
       }
       if (name) localStorage.setItem("pm_user_name", name);
+      if (email) localStorage.setItem("pm_user_email", email.trim().toLowerCase());
+      localStorage.setItem("pm_terms_accepted", "1");
+      localStorage.setItem("pm_terms_version", "2026-08-30");
       localStorage.setItem("pm_authed", "1");
-    } catch {
-      // ignore
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Unable to create your account. Please try again.",
+      );
+      return;
     }
     navigate({
       to:
         role === "seeker" ? "/seeker" : role === "owner" || role === "both" ? "/owner" : "/browse",
     });
+  };
+
+  const handleGoogle = async () => {
+    if (googleStarting) return;
+    setGoogleStarting(true);
+    setError("");
+    try {
+      const result = await beginGoogle();
+      window.location.assign(result.authorizationUrl);
+    } catch (googleError) {
+      setError(
+        googleError instanceof Error ? googleError.message : "Unable to start Google sign-up.",
+      );
+      setGoogleStarting(false);
+    }
   };
 
   return (
@@ -201,28 +244,45 @@ function SignupPage() {
               </div>
             </div>
 
+            <div className="rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs text-on-surface-variant leading-relaxed">
+              <strong className="text-on-surface">Stay safe:</strong> Never pay before inspecting a
+              property, confirming the landlord, and receiving a written agreement. Property Mogul
+              will never ask you to pay an unrelated account.
+            </div>
+
             <label className="flex items-start gap-2 text-xs text-on-surface-variant cursor-pointer">
-              <input type="checkbox" required className="accent-primary-container mt-0.5" />
+              <input
+                type="checkbox"
+                required
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="accent-primary-container mt-0.5"
+              />
               <span>
                 I agree to the{" "}
-                <a href="#" className="text-primary-container hover:underline">
+                <Link to="/terms" className="text-primary-container hover:underline">
                   Terms
-                </a>{" "}
+                </Link>{" "}
                 and{" "}
-                <a href="#" className="text-primary-container hover:underline">
+                <Link to="/privacy" className="text-primary-container hover:underline">
                   Privacy Policy
-                </a>
+                </Link>
                 .
               </span>
             </label>
 
             <button
               type="submit"
-              disabled={!pwValid}
+              disabled={!pwValid || !termsAccepted}
               className="w-full bg-gradient-to-r from-primary-container to-secondary text-on-primary py-3.5 rounded-xl font-bold cyan-glow hover:brightness-110 active:scale-[0.99] transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Create Account
             </button>
+            {error && (
+              <p role="alert" className="text-sm text-error">
+                {error}
+              </p>
+            )}
 
             <div className="flex items-center gap-3 text-xs text-on-surface-variant">
               <div className="flex-1 h-px bg-border-muted" />
@@ -232,9 +292,12 @@ function SignupPage() {
 
             <button
               type="button"
+              onClick={handleGoogle}
+              disabled={googleStarting}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border-muted hover:bg-white/5 font-semibold text-sm"
             >
-              <Icon name="login" /> Sign up with Google
+              <Icon name="login" />{" "}
+              {googleStarting ? "Connecting to Google…" : "Continue with Google"}
             </button>
           </form>
 

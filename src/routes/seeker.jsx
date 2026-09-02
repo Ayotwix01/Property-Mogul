@@ -1,10 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AiChatWidget } from "@/components/ai-chat-widget";
-import { properties } from "@/lib/properties";
 import { PageSkeleton, usePreload } from "@/components/skeleton";
-import { useRole, switchRole } from "@/hooks/use-auth";
+import { useAuth, useRole, switchRole } from "@/hooks/use-auth";
+import { listFavorites } from "@/lib/favorite.functions";
+import {
+  cancelViewingRequest,
+  listMyInquiries,
+  listMyViewingRequests,
+} from "@/lib/communication.functions";
 
 export const Route = createFileRoute("/seeker")({
   head: () => ({
@@ -38,42 +44,83 @@ function Icon({ name, className = "", filled = false }) {
 
 function SeekerDashboard() {
   const ready = usePreload(500);
+  const authState = useAuth();
   const roleState = useRole();
   const navigate = useNavigate();
-  const [name, setName] = useState("Explorer");
   const [chatOpen, setChatOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [saved, setSaved] = useState([]);
+  const [savedError, setSavedError] = useState("");
+  const [tours, setTours] = useState([]);
+  const [messagesCount, setMessagesCount] = useState(0);
+  const [tourError, setTourError] = useState("");
+  const [cancellingTour, setCancellingTour] = useState("");
+  const getFavorites = useServerFn(listFavorites);
+  const getTours = useServerFn(listMyViewingRequests);
+  const getInquiries = useServerFn(listMyInquiries);
+  const cancelTour = useServerFn(cancelViewingRequest);
+  const name = authState.name || "Explorer";
 
   // Role guard: redirect if not seeker
   useEffect(() => {
-    if (ready && localStorage.getItem("pm_authed") !== "1") {
+    if (ready && roleState.ready && !roleState.isSeeker) {
       navigate({ to: "/login" });
-    } else if (ready && roleState.isSeeker === false) {
-      navigate({ to: "/role-select" });
     }
-  }, [ready, roleState, navigate]);
+  }, [ready, roleState.ready, roleState.isSeeker, navigate]);
 
   useEffect(() => {
+    if (!authState.ready || !authState.authed || !roleState.ready || !roleState.isSeeker) return;
+    let active = true;
+    getFavorites()
+      .then((rows) => {
+        if (active) setSaved(rows.map((row) => ({ ...row.property, ...row })));
+      })
+      .catch((error) => {
+        if (active)
+          setSavedError(error instanceof Error ? error.message : "Unable to load saved homes.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [authState.authed, authState.ready, getFavorites, roleState.isSeeker, roleState.ready]);
+
+  useEffect(() => {
+    if (!authState.ready || !authState.authed || !roleState.ready || !roleState.isSeeker) return;
+    Promise.all([getTours(), getInquiries()])
+      .then(([tourRows, inquiryRows]) => {
+        setTours(tourRows);
+        setMessagesCount(inquiryRows.length);
+      })
+      .catch((error) =>
+        setTourError(error instanceof Error ? error.message : "Unable to load activity."),
+      );
+  }, [
+    authState.authed,
+    authState.ready,
+    getInquiries,
+    getTours,
+    roleState.isSeeker,
+    roleState.ready,
+  ]);
+
+  const handleCancelTour = async (viewingId) => {
+    setCancellingTour(viewingId);
     try {
-      const n = localStorage.getItem("pm_user_name");
-      if (n) setName(n.split(" ")[0]);
-    } catch {
-      // ignore
+      await cancelTour({ data: { viewingId } });
+      setTours((current) => current.filter((tour) => (tour.viewing || tour).id !== viewingId));
+    } catch (error) {
+      setTourError(error instanceof Error ? error.message : "Unable to cancel viewing request.");
+    } finally {
+      setCancellingTour("");
     }
-  }, []);
+  };
 
   if (!ready) return <PageSkeleton />;
 
   // Still show loading while checking role
-  if (roleState.roles.length > 0 && !roleState.isSeeker) return <PageSkeleton />;
+  if (!roleState.ready || !roleState.isSeeker) return <PageSkeleton />;
 
-  const saved = properties.slice(0, 3);
-  const recommended = properties.slice(3, 7);
-  const tours = [
-    { property: properties[1], when: "Sat, Jul 11 · 11:00 AM", status: "Confirmed" },
-    { property: properties[4], when: "Mon, Jul 13 · 3:30 PM", status: "Awaiting host" },
-  ];
-
+  const recommended = [];
   const stats = [
     { label: "Saved Homes", value: saved.length, icon: "favorite", tone: "text-primary-container" },
     {
@@ -82,8 +129,8 @@ function SeekerDashboard() {
       icon: "event_available",
       tone: "text-success-cyan",
     },
-    { label: "Messages", value: 4, icon: "chat", tone: "text-primary" },
-    { label: "Matches / week", value: 12, icon: "auto_awesome", tone: "text-primary-container" },
+    { label: "Messages", value: messagesCount, icon: "chat", tone: "text-primary" },
+    { label: "Matches / week", value: "—", icon: "auto_awesome", tone: "text-primary-container" },
   ];
 
   return (
@@ -256,7 +303,7 @@ function SeekerDashboard() {
                 Welcome back, <span className="primary-gradient-text">{name}</span>
               </h1>
               <p className="text-on-surface-variant max-w-xl">
-                Your curated feed is fresh with new listings across Lagos, Abuja and Port Harcourt.
+                Browse verified listings across Lagos and Abuja as the marketplace grows.
               </p>
             </div>
             <div className="flex flex-wrap gap-3 shrink-0">
@@ -311,37 +358,44 @@ function SeekerDashboard() {
               View all &rarr;
             </Link>
           </div>
+          {savedError && <p className="mb-4 text-sm text-error">{savedError}</p>}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {saved.map((p) => (
-              <Link
-                key={p.id}
-                to={"/property/" + p.id}
-                className="group bg-surface-container-lowest border border-border-muted rounded-2xl overflow-hidden hover:border-primary-container/40 transition-all flex flex-col"
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={p.images[0]}
-                    alt={p.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute top-3 right-3 bg-background/60 backdrop-blur-md p-2 rounded-full text-primary-container">
-                    <Icon name="favorite" />
+            {saved.length === 0 ? (
+              <div className="sm:col-span-2 lg:col-span-3 rounded-2xl border border-dashed border-border-muted p-10 text-center text-on-surface-variant">
+                No saved homes yet. Browse properties and save the ones you like.
+              </div>
+            ) : (
+              saved.map((p) => (
+                <Link
+                  key={p.id}
+                  to={"/property/" + p.id}
+                  className="group bg-surface-container-lowest border border-border-muted rounded-2xl overflow-hidden hover:border-primary-container/40 transition-all flex flex-col"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src={p.images[0]}
+                      alt={p.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-3 right-3 bg-background/60 backdrop-blur-md p-2 rounded-full text-primary-container">
+                      <Icon name="favorite" />
+                    </div>
                   </div>
-                </div>
-                <div className="p-5 flex-1 flex flex-col gap-2">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="font-bold truncate">{p.title}</h3>
-                    <span className="font-mono-data text-primary-container font-bold text-sm shrink-0">
-                      {p.price}
-                    </span>
+                  <div className="p-5 flex-1 flex flex-col gap-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="font-bold truncate">{p.title}</h3>
+                      <span className="font-mono-data text-primary-container font-bold text-sm shrink-0">
+                        {p.price}
+                      </span>
+                    </div>
+                    <p className="text-sm text-on-surface-variant flex items-center gap-1 min-w-0">
+                      <Icon name="location_on" />
+                      <span className="truncate">{p.location}</span>
+                    </p>
                   </div>
-                  <p className="text-sm text-on-surface-variant flex items-center gap-1 min-w-0">
-                    <Icon name="location_on" />
-                    <span className="truncate">{p.location}</span>
-                  </p>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))
+            )}
           </div>
         </section>
 
@@ -351,38 +405,44 @@ function SeekerDashboard() {
             <div>
               <h2 className="font-display font-bold text-2xl sm:text-3xl">Recommended for you</h2>
               <p className="text-on-surface-variant text-sm">
-                Tailored to your saved homes and search history.
+                Recommendations will appear after search preferences and activity are connected.
               </p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {recommended.map((p) => (
-              <Link
-                key={p.id}
-                to={"/property/" + p.id}
-                className="flex items-center gap-4 p-4 bg-surface-container-lowest border border-border-muted rounded-2xl hover:border-primary-container/40 transition-all"
-              >
-                <img
-                  src={p.images[0]}
-                  alt={p.title}
-                  className="w-28 h-28 shrink-0 object-cover rounded-xl"
-                />
-                <div className="min-w-0 flex flex-col justify-between">
-                  <div>
-                    <h3 className="font-bold truncate">{p.title}</h3>
-                    <p className="text-sm text-on-surface-variant truncate">{p.location}</p>
+            {recommended.length === 0 ? (
+              <div className="md:col-span-2 rounded-2xl border border-dashed border-border-muted p-10 text-center text-on-surface-variant">
+                Personalized recommendations are not available yet.
+              </div>
+            ) : (
+              recommended.map((p) => (
+                <Link
+                  key={p.id}
+                  to={"/property/" + p.id}
+                  className="flex items-center gap-4 p-4 bg-surface-container-lowest border border-border-muted rounded-2xl hover:border-primary-container/40 transition-all"
+                >
+                  <img
+                    src={p.images[0]}
+                    alt={p.title}
+                    className="w-28 h-28 shrink-0 object-cover rounded-xl"
+                  />
+                  <div className="min-w-0 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-bold truncate">{p.title}</h3>
+                      <p className="text-sm text-on-surface-variant truncate">{p.location}</p>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-mono-data text-primary-container font-bold text-sm">
+                        {p.price}
+                      </span>
+                      <span className="text-xs text-on-surface-variant">
+                        {p.beds} bd &middot; {p.baths} ba
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="font-mono-data text-primary-container font-bold text-sm">
-                      {p.price}
-                    </span>
-                    <span className="text-xs text-on-surface-variant">
-                      {p.beds} bd &middot; {p.baths} ba
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))
+            )}
           </div>
         </section>
 
@@ -392,29 +452,43 @@ function SeekerDashboard() {
             <h2 className="font-display font-bold text-2xl sm:text-3xl">Upcoming tours</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {tours.map((t) => (
-              <div
-                key={t.property.id}
-                className="flex items-center gap-4 p-5 bg-surface-container-lowest border border-border-muted rounded-2xl"
-              >
-                <div className="w-14 h-14 rounded-xl bg-primary-container/10 border border-primary-container/30 grid place-items-center text-primary-container shrink-0">
-                  <Icon name="event" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold truncate">{t.property.title}</p>
-                  <p className="text-sm text-on-surface-variant">{t.when}</p>
-                </div>
-                <span
-                  className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border shrink-0 ${
-                    t.status === "Confirmed"
-                      ? "text-success-cyan border-success-cyan/40 bg-success-cyan/10"
-                      : "text-primary-container border-primary-container/40 bg-primary-container/10"
-                  }`}
-                >
-                  {t.status}
-                </span>
+            {tours.length === 0 ? (
+              <div className="md:col-span-2 rounded-2xl border border-dashed border-border-muted p-10 text-center text-on-surface-variant">
+                {tourError || "No viewing requests yet. Request a viewing from a property page."}
               </div>
-            ))}
+            ) : (
+              tours.map((item) => {
+                const t = item.viewing || item;
+                return (
+                  <div
+                    key={t.id}
+                    className="flex items-center gap-4 p-5 bg-surface-container-lowest border border-border-muted rounded-2xl"
+                  >
+                    <div className="w-14 h-14 rounded-xl bg-primary-container/10 border border-primary-container/30 grid place-items-center text-primary-container shrink-0">
+                      <Icon name="event" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold truncate">
+                        {item.property?.title || "Property viewing"}
+                      </p>
+                      <p className="text-sm text-on-surface-variant">
+                        {new Date(t.requestedDate).toLocaleString()} · {t.status}
+                      </p>
+                    </div>
+                    {t.status === "REQUESTED" && (
+                      <button
+                        type="button"
+                        onClick={() => handleCancelTour(t.id)}
+                        disabled={cancellingTour === t.id}
+                        className="text-xs font-bold text-error"
+                      >
+                        {cancellingTour === t.id ? "Cancelling…" : "Cancel"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </section>
       </main>

@@ -1,15 +1,26 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 
 import { AiChatWidget } from "@/components/ai-chat-widget";
 import { PageSkeleton, usePreload } from "@/components/skeleton";
-import { getProperty, properties } from "@/lib/properties";
+import { getPublishedProperty } from "@/lib/property.functions";
+import { createInquiry, createReport } from "@/lib/communication.functions";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  createContactPayment,
+  getContactAccessPrice,
+  getLandlordContact,
+} from "@/lib/contact-access.functions";
 
 export const Route = createFileRoute("/property/$id")({
-  loader: ({ params }) => {
-    const property = getProperty(params.id);
-    if (!property) throw notFound();
-    return { property };
+  loader: async ({ params }) => {
+    try {
+      const property = await getPublishedProperty({ data: { id: params.id } });
+      return { property };
+    } catch {
+      throw notFound();
+    }
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
@@ -48,6 +59,13 @@ export const Route = createFileRoute("/property/$id")({
 function PropertyDetailPage() {
   const ready = usePreload(400);
   const { property } = Route.useLoaderData();
+  const navigate = useNavigate();
+  const authState = useAuth();
+  const sendInquiry = useServerFn(createInquiry);
+  const reportProperty = useServerFn(createReport);
+  const startPayment = useServerFn(createContactPayment);
+  const loadPrice = useServerFn(getContactAccessPrice);
+  const loadContact = useServerFn(getLandlordContact);
 
   const [tab, setTab] = useState("description");
   const [activeImage, setActiveImage] = useState(0);
@@ -55,17 +73,70 @@ function PropertyDetailPage() {
   const [tourModalOpen, setTourModalOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [messageSent, setMessageSent] = useState(false);
+  const [inquiryError, setInquiryError] = useState("");
+  const [inquirySending, setInquirySending] = useState(false);
+  const [contactPrice, setContactPrice] = useState(null);
+  const [contact, setContact] = useState(null);
+  const [contactState, setContactState] = useState("");
+  const [reportState, setReportState] = useState("");
 
-  const others = useMemo(
-    () => properties.filter((p) => p.id !== property.id).slice(0, 3),
-    [property.id],
-  );
+  const others = [];
+
+  const submitInquiry = async (event) => {
+    event.preventDefault();
+    if (!authState.ready || !authState.authed) {
+      navigate({ to: "/login" });
+      return;
+    }
+    if (!messageText.trim()) return;
+    setInquirySending(true);
+    setInquiryError("");
+    try {
+      await sendInquiry({ data: { propertyId: property.id, message: messageText } });
+      setMessageSent(true);
+      setMessageText("");
+    } catch (error) {
+      setInquiryError(error instanceof Error ? error.message : "Unable to send inquiry.");
+    } finally {
+      setInquirySending(false);
+    }
+  };
 
   useEffect(() => {
     setActiveImage(0);
   }, [property.id]);
 
   const images = property.images ?? [];
+
+  useEffect(() => {
+    if (!authState.ready || !authState.authed) return;
+    loadPrice()
+      .then(setContactPrice)
+      .catch(() => undefined);
+    loadContact({ data: { propertyId: property.id } })
+      .then(setContact)
+      .catch(() => undefined);
+  }, [authState.authed, authState.ready, loadContact, loadPrice, property.id]);
+
+  const unlockContact = async () => {
+    if (!authState.authed) {
+      navigate({ to: "/login" });
+      return;
+    }
+    setContactState("Initializing secure Paystack checkout…");
+    try {
+      const result = await startPayment({ data: { propertyId: property.id } });
+      if (result.alreadyGranted) {
+        setContactState("Contact access already granted. Refreshing…");
+        setContact(await loadContact({ data: { propertyId: property.id } }));
+      } else if (result.authorizationUrl) {
+        setContactState("Redirecting to Paystack…");
+        window.location.assign(result.authorizationUrl);
+      }
+    } catch (error) {
+      setContactState(error instanceof Error ? error.message : "Unable to initialize payment.");
+    }
+  };
 
   if (!ready) return <PageSkeleton />;
 
@@ -308,24 +379,40 @@ function PropertyDetailPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    const subject = encodeURIComponent("Inquiry: " + property.title);
-                    const body = encodeURIComponent(
-                      "Hello, I'm interested in " +
-                        property.title +
-                        " located at " +
-                        property.address +
-                        ". Please provide more details.",
-                    );
-                    window.open(
-                      `mailto:${property.owner?.email || "owner@propertymogul.com"}?subject=${subject}&body=${body}`,
-                      "_blank",
-                    );
-                  }}
+                  onClick={() => document.getElementById("contact-form")?.focus()}
                   className="w-full py-3.5 rounded-xl font-bold text-primary-container border border-primary-container hover:bg-primary-container/10 active:scale-[0.99] transition"
                 >
-                  Apply to Rent
+                  Contact Landlord
                 </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!authState.authed) {
+                      navigate({ to: "/login" });
+                      return;
+                    }
+                    if (!window.confirm("Report this listing for moderation review?")) return;
+                    try {
+                      await reportProperty({
+                        data: {
+                          targetType: "PROPERTY",
+                          targetId: property.id,
+                          category: "OTHER",
+                          description: "Reported from the property details page.",
+                        },
+                      });
+                      setReportState("Listing reported to the moderation team.");
+                    } catch (error) {
+                      setReportState(
+                        error instanceof Error ? error.message : "Unable to report listing.",
+                      );
+                    }
+                  }}
+                  className="w-full py-2 text-xs font-bold text-warning hover:underline"
+                >
+                  Report this listing
+                </button>
+                {reportState && <p className="text-xs text-on-surface-variant">{reportState}</p>}
               </div>
 
               <div className="pt-6 mt-6 border-t border-border-muted">
@@ -339,39 +426,45 @@ function PropertyDetailPage() {
                   <div className="min-w-0">
                     <p className="font-bold truncate">{property.owner?.name}</p>
                     <p className="text-xs text-on-surface-variant">{property.owner?.title}</p>
-                    <a
-                      href={`tel:${property.owner?.phone}`}
-                      className="text-xs text-primary-container hover:underline block truncate"
-                    >
-                      {property.owner?.phone}
-                    </a>
-                    <a
-                      href={`mailto:${property.owner?.email}`}
-                      className="text-xs text-on-surface-variant hover:text-primary-container block truncate"
-                    >
-                      {property.owner?.email}
-                    </a>
+                    <p className="text-xs text-success-cyan">Identity Verified</p>
+                    {contact ? (
+                      <div className="mt-3 space-y-1 text-sm">
+                        {contact.phone && (
+                          <a className="block text-primary-container" href={`tel:${contact.phone}`}>
+                            {contact.phone}
+                          </a>
+                        )}
+                        {contact.whatsapp && (
+                          <a
+                            className="block text-primary-container"
+                            href={`https://wa.me/${contact.whatsapp.replace(/\D/g, "")}`}
+                          >
+                            Open WhatsApp
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="mt-3 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs text-on-surface-variant">
+                        <p>Landlord contact details are protected.</p>
+                        {contactPrice && (
+                          <p className="mt-1 font-bold text-on-surface">
+                            Unlock for ₦{contactPrice.amount.toLocaleString()}
+                          </p>
+                        )}
+                        <button
+                          type="button"
+                          onClick={unlockContact}
+                          className="mt-3 rounded-lg bg-primary-container px-3 py-2 font-bold text-on-primary-container"
+                        >
+                          Unlock landlord contact
+                        </button>
+                        {contactState && <p className="mt-2">{contactState}</p>}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <form
-                  className="space-y-3"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (!messageText.trim()) return;
-                    setMessageSent(true);
-                    const subject = encodeURIComponent("Inquiry: " + property.title);
-                    const body = encodeURIComponent(messageText + "\n\n-- Sent via Property Mogul");
-                    window.open(
-                      `mailto:${property.owner?.email || "owner@propertymogul.com"}?subject=${subject}&body=${body}`,
-                      "_blank",
-                    );
-                    setTimeout(() => {
-                      setMessageText("");
-                      setMessageSent(false);
-                    }, 2000);
-                  }}
-                >
+                <form className="space-y-3" id="contact-form" onSubmit={submitInquiry}>
                   <textarea
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
@@ -379,12 +472,13 @@ function PropertyDetailPage() {
                     className="w-full bg-background border border-border-muted rounded-xl p-3 text-sm focus:border-primary-container focus:ring-1 focus:ring-primary-container outline-none resize-none min-h-[80px]"
                     rows={3}
                   />
+                  {inquiryError && <p className="text-xs text-error">{inquiryError}</p>}
                   <button
                     type="submit"
-                    disabled={!messageText.trim()}
+                    disabled={!messageText.trim() || inquirySending}
                     className="w-full py-3 bg-surface-container-highest hover:bg-surface-variant transition-colors font-bold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    {messageSent ? "Message Sent! ✓" : "Send Message"}
+                    {inquirySending ? "Sending…" : messageSent ? "Inquiry Sent! ✓" : "Send Inquiry"}
                   </button>
                 </form>
               </div>
@@ -409,26 +503,34 @@ function PropertyDetailPage() {
                     </button>
                   </div>
                   <form
-                    onSubmit={(e) => {
+                    onSubmit={async (e) => {
                       e.preventDefault();
+                      if (!authState.ready || !authState.authed) {
+                        navigate({ to: "/login" });
+                        return;
+                      }
                       const formData = new FormData(e.target);
                       const date = formData.get("tour-date");
                       const time = formData.get("tour-time");
-                      const subject = encodeURIComponent("Tour Request: " + property.title);
-                      const body = encodeURIComponent(
-                        "Hello, I would like to schedule a tour for " +
-                          property.title +
-                          ".\n\nPreferred date: " +
-                          date +
-                          "\nPreferred time: " +
-                          time +
-                          "\n\n-- Sent via Property Mogul",
-                      );
-                      window.open(
-                        `mailto:${property.owner?.email || "owner@propertymogul.com"}?subject=${subject}&body=${body}`,
-                        "_blank",
-                      );
-                      setTourModalOpen(false);
+                      const requestedDate = new Date(`${date}T${time}`);
+                      if (Number.isNaN(requestedDate.getTime())) {
+                        throw new Error("Choose a valid viewing date and time.");
+                      }
+                      try {
+                        await sendInquiry({
+                          data: {
+                            propertyId: property.id,
+                            message: "I would like to schedule a viewing at " + time + ".",
+                            requestedDate,
+                          },
+                        });
+                        setTourModalOpen(false);
+                        setMessageSent(true);
+                      } catch (error) {
+                        setInquiryError(
+                          error instanceof Error ? error.message : "Unable to request viewing.",
+                        );
+                      }
                     }}
                     className="space-y-4"
                   >

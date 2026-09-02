@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useEffect } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { usePreload } from "@/components/skeleton";
+import { listPublishedProperties } from "@/lib/property.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -35,36 +38,6 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const heroCards = [
-  {
-    title: "Azure Sky Loft",
-    location: "Victoria Island, Lagos",
-    price: "₦1,250,000",
-    meta: "3 BR",
-    tag: "PREMIUM",
-    tagTone: "success",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuA4ONf2eXjU_9yQ10sr9PUvrLXxnvn0ye7uZtlM_ujuDADDDyg-Y6w9MD6KmK0BQyHC81OgZJsystmrVkblcBJdryd8NYVMm3zweQxtMv53SvWOAtMNq3GSactFM6_QdjkuEz0sEzkC3eTmIXsX6sifkp4bmx5JVkGq9UPHtdvVZz3SYu8DwVYTBPUf7M-Bz9Ycq3liZ2A51cdtEZx73TYzUoBRAefWhYp7XtsSDhZsxSXfWaKuzf_-XH4Yl2m-N3on-zhbkUFjG6jx",
-  },
-  {
-    title: "Ocean Edge Estate",
-    location: "Banana Island, Lagos",
-    price: "₦850,000",
-    meta: "Active",
-    tag: "NEWLY LISTED",
-    tagTone: "primary",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuC8q4UAaXt6Wcm2aVLkwLyqsUCebtWvsAtazribjYjg-ysW6hlROOqt9Dk5fR5uxi7gWl_CcQOdQc6xamg8gnJXJ14vwhenYysTs3TfLftltyExj9HjOx0vJJPPg6CwWgmcrTA6HkThu0V2hN3bBSRt7Y-alyhhdYEAzX_UZSQclGkofmwxKYMhgKBoTSkgMefj41ImuSCmnV5JYJJXN-aVkNtRvzSJ2J7cOz2ut2G7lnOxjmSbodgW3u1u_8vq9hQuS1x2pz-sj8X7",
-  },
-  {
-    title: "Tech Hub Plaza",
-    location: "Maitama, Abuja",
-    price: "₦4,500/mo",
-    meta: "120m²",
-    tag: "COMMERCIAL",
-    tagTone: "tertiary",
-    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCpodUeRyiywYM1qPsx8H5kPwImvT7TcjKAEhRely_S55AP0gj5eQuTIyQyku8JNXaikT2VRP95fsOYIeITRWjhUNb_XXMm39L6dpYoRmFvBR_38EAD4d74uI0mAJouzfnoUhgbCvFaME4dn6LBkmApa-gMjtrjNf4lTSRKPsQNRWXB4m9Zzy7_1qV6vGpkaRF3qXYKs3yNL2IQzGgM_Y732LW1v6WynTN1deAzroMkLK2AmvnDtvweWpi4Nzir4UgJmSrtkgy8RE8m",
-  },
-];
-
 const tagStyles = {
   success: "border-success-cyan/30 text-success-cyan [&_.dot]:bg-success-cyan",
   primary: "border-primary-container/30 text-primary-container [&_.dot]:bg-primary-container",
@@ -74,8 +47,28 @@ const tagStyles = {
 function Landing() {
   const ready = usePreload(400);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [featured, setFeatured] = useState([]);
+  const [featuredError, setFeaturedError] = useState("");
+  const getProperties = useServerFn(listPublishedProperties);
 
   const tagClass = useMemo(() => (tone) => tagStyles[tone] ?? tagStyles.primary, []);
+
+  useEffect(() => {
+    let active = true;
+    getProperties({ data: { page: 1, pageSize: 3, sort: "newest" } })
+      .then((result) => {
+        if (active) setFeatured(result.properties);
+      })
+      .catch((error) => {
+        if (active)
+          setFeaturedError(
+            error instanceof Error ? error.message : "Unable to load featured listings.",
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, [getProperties]);
 
   if (!ready) return null;
 
@@ -226,54 +219,69 @@ function Landing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {heroCards.map((p) => (
-              <div
-                key={p.title}
-                className="glass-panel rounded-2xl overflow-hidden group hover:border-primary-container/40 transition-all duration-300"
-              >
-                <div className="h-64 relative overflow-hidden">
-                  <img
-                    alt={p.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    src={p.img}
-                  />
-                  <div
-                    className={`absolute top-4 left-4 bg-surface-glass backdrop-blur-md px-3 py-1 rounded-full border flex items-center gap-1.5 ${tagClass(p.tagTone)}`}
-                  >
-                    <span className="dot w-2 h-2 rounded-full animate-pulse" />
-                    <span className="font-label-caps text-[10px]">{p.tag}</span>
+            {featuredError ? (
+              <p className="col-span-full rounded-2xl border border-dashed border-border-muted p-10 text-center text-on-surface-variant">
+                Featured listings are unavailable right now.
+              </p>
+            ) : featured.length === 0 ? (
+              <p className="col-span-full rounded-2xl border border-dashed border-border-muted p-10 text-center text-on-surface-variant">
+                No published listings yet. Check back soon.
+              </p>
+            ) : (
+              featured.map((p) => (
+                <div
+                  key={p.id}
+                  className="glass-panel rounded-2xl overflow-hidden group hover:border-primary-container/40 transition-all duration-300"
+                >
+                  <div className="h-64 relative overflow-hidden">
+                    <img
+                      alt={p.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      src={p.images?.[0]}
+                    />
+                    {p.tags?.[0] && (
+                      <div
+                        className={`absolute top-4 left-4 bg-surface-glass backdrop-blur-md px-3 py-1 rounded-full border flex items-center gap-1.5 ${tagClass(p.tags[0].tone)}`}
+                      >
+                        <span className="dot w-2 h-2 rounded-full animate-pulse" />
+                        <span className="font-label-caps text-[10px]">{p.tags[0].label}</span>
+                      </div>
+                    )}
                   </div>
-                </div>
 
-                <div className="p-6 space-y-4">
-                  <h3 className="text-xl text-primary">{p.title}</h3>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-on-surface-variant">Location</span>
-                    <span className="text-on-surface font-mono-data">{p.location}</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-border-muted">
-                    <div>
-                      <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">
-                        Price
-                      </p>
-                      <p className="text-primary-container font-mono-data text-xl">{p.price}</p>
+                  <div className="p-6 space-y-4">
+                    <h3 className="text-xl text-primary">{p.title}</h3>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-on-surface-variant">Location</span>
+                      <span className="text-on-surface font-mono-data">{p.location}</span>
                     </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">
-                        Details
-                      </p>
-                      <p className="text-success-cyan font-mono-data text-xl">{p.meta}</p>
+                    <div className="flex justify-between items-center pt-2 border-t border-border-muted">
+                      <div>
+                        <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">
+                          Price
+                        </p>
+                        <p className="text-primary-container font-mono-data text-xl">{p.price}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">
+                          Details
+                        </p>
+                        <p className="text-success-cyan font-mono-data text-xl">
+                          {p.beds ? `${p.beds} BR` : p.category}
+                        </p>
+                      </div>
                     </div>
+                    <Link
+                      to="/property/$id"
+                      params={{ id: p.id }}
+                      className="block w-full text-center py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-primary-container hover:text-on-primary-container transition-all font-bold"
+                    >
+                      View Details
+                    </Link>
                   </div>
-                  <Link
-                    to="/browse"
-                    className="block w-full text-center py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-primary-container hover:text-on-primary-container transition-all font-bold"
-                  >
-                    View Details
-                  </Link>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </section>
 

@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 
-import { properties } from "@/lib/properties";
 import { PageSkeleton, usePreload } from "@/components/skeleton";
-
-const FAV_KEY = "pm_favorites";
+import { useAuth } from "@/hooks/use-auth";
+import { listFavorites, removeFavorite } from "@/lib/favorite.functions";
 
 export const Route = createFileRoute("/favorites")({
   head: () => ({
@@ -22,32 +22,47 @@ export const Route = createFileRoute("/favorites")({
 
 function FavoritesPage() {
   const ready = usePreload(300);
-  const [ids, setIds] = useState([]);
+  const authState = useAuth();
+  const [favProperties, setFavProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const getFavorites = useServerFn(listFavorites);
+  const remove = useServerFn(removeFavorite);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(FAV_KEY);
-      if (raw) setIds(JSON.parse(raw));
-    } catch {
-      // ignore
+    if (!authState.ready) return;
+    if (!authState.authed) {
+      setLoading(false);
+      return;
     }
-  }, []);
+    let active = true;
+    getFavorites()
+      .then((rows) => {
+        if (active) setFavProperties(rows.map((row) => ({ ...row.property, ...row })));
+      })
+      .catch((loadError) => {
+        if (active)
+          setError(loadError instanceof Error ? loadError.message : "Unable to load favorites.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [authState.authed, authState.ready, getFavorites]);
 
-  const favProperties = useMemo(() => properties.filter((p) => ids.includes(p.id)), [ids]);
-
-  const remove = (id) => {
-    setIds((prev) => {
-      const next = prev.filter((x) => x !== id);
-      try {
-        localStorage.setItem(FAV_KEY, JSON.stringify(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
+  const removeFromFavorites = async (id) => {
+    setError("");
+    try {
+      await remove({ data: { propertyId: id } });
+      setFavProperties((current) => current.filter((property) => property.id !== id));
+    } catch (removeError) {
+      setError(removeError instanceof Error ? removeError.message : "Unable to remove favorite.");
+    }
   };
 
-  if (!ready) return <PageSkeleton />;
+  if (!ready || !authState.ready || loading) return <PageSkeleton />;
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex flex-col">
@@ -74,7 +89,24 @@ function FavoritesPage() {
           <span className="text-on-surface-variant font-mono-data">({favProperties.length})</span>
         </div>
 
-        {favProperties.length === 0 ? (
+        {!authState.authed ? (
+          <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-3 text-on-surface-variant text-center px-6">
+            <p className="font-bold text-lg text-on-surface">Log in to view your favorites</p>
+            <p className="text-sm max-w-md">
+              Saved properties are securely linked to your account.
+            </p>
+            <Link
+              to="/login"
+              className="mt-4 bg-primary-container text-on-primary-container px-5 py-2 rounded-xl font-bold text-sm"
+            >
+              Log in
+            </Link>
+          </div>
+        ) : error ? (
+          <div className="glass-panel rounded-3xl h-[400px] flex items-center justify-center text-error text-center px-6">
+            {error}
+          </div>
+        ) : favProperties.length === 0 ? (
           <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-3 text-on-surface-variant text-center px-6">
             <p className="font-bold text-lg">No favorites yet</p>
             <p className="text-sm max-w-md">
@@ -105,7 +137,7 @@ function FavoritesPage() {
                     height={600}
                   />
                   <button
-                    onClick={() => remove(p.id)}
+                    onClick={() => removeFromFavorites(p.id)}
                     aria-label={`Remove ${p.title} from favorites`}
                     className="absolute top-4 right-4 bg-background/40 backdrop-blur-md text-on-surface p-2 rounded-full hover:bg-primary-container hover:text-on-primary-container transition-colors"
                     type="button"
@@ -131,7 +163,7 @@ function FavoritesPage() {
                     </Link>
 
                     <button
-                      onClick={() => remove(p.id)}
+                      onClick={() => removeFromFavorites(p.id)}
                       className="text-center bg-surface-container border border-border-muted text-on-surface-variant py-3 rounded-xl font-bold hover:bg-on-surface hover:text-background transition-all"
                       type="button"
                     >

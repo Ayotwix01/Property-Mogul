@@ -8,7 +8,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
 
@@ -126,6 +126,33 @@ function RouteProgress() {
   );
 }
 
+function SafetyNotice() {
+  const [visible, setVisible] = useState(true);
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed bottom-4 left-4 right-4 z-[90] mx-auto max-w-2xl rounded-2xl border border-warning/30 bg-surface-container-lowest/95 px-4 py-3 shadow-2xl backdrop-blur-xl">
+      <div className="flex items-start gap-3">
+        <span className="material-symbols-outlined text-warning">shield</span>
+        <p className="flex-1 text-xs leading-relaxed text-on-surface-variant">
+          <strong className="text-on-surface">Stay safe:</strong> Inspect the property and verify
+          the person’s authority before paying. Never share OTPs or send money to an unrelated
+          account.
+        </p>
+        <button
+          type="button"
+          onClick={() => setVisible(false)}
+          aria-label="Dismiss safety notice"
+          className="text-on-surface-variant hover:text-on-surface"
+        >
+          <span className="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function RootComponent({ children }) {
   return (
     <html lang="en">
@@ -138,6 +165,7 @@ function RootComponent({ children }) {
           <RouteProgress />
           <Outlet />
           {children}
+          <SafetyNotice />
         </QueryClientProvider>
         <Scripts />
       </body>

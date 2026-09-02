@@ -23,11 +23,10 @@
 
 ### Phase 4: Landing Page & Other Routes
 - [x] Update `src/routes/index.jsx` — hero redesign, mobile fixes
-- [x] Update `src/routes/browse.jsx` — conditional nav links, mobile fixes
+- [x] Update `src/routes/browse.jsx` — mobile fixes
 - [x] Update `src/routes/property.$id.jsx` — functional action buttons
 
 ### Phase 5: Final Verification
 - [x] Verify all files compile without errors (build running)
 - [x] Test mobile responsiveness
 - [x] All implementation phases complete
-

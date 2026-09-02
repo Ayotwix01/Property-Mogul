@@ -1,12 +1,14 @@
 import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 
 import { AiChatWidget } from "@/components/ai-chat-widget";
 import { PageSkeleton, usePreload } from "@/components/skeleton";
-import { properties } from "@/lib/properties";
-import { useRole } from "@/hooks/use-auth";
+import { useAuth, useRole } from "@/hooks/use-auth";
+import { addFavorite, listFavorites, removeFavorite } from "@/lib/favorite.functions";
+import { listPublishedProperties } from "@/lib/property.functions";
 
 const browseSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -44,35 +46,61 @@ export const Route = createFileRoute("/browse")({
 });
 
 const PAGE_SIZE = 9;
-const FAV_KEY = "pm_favorites";
 
-function useFavorites() {
+function useFavorites(authed, authReady) {
   const [favorites, setFavorites] = useState(() => new Set());
+  const [favoriteError, setFavoriteError] = useState("");
+  const getFavorites = useServerFn(listFavorites);
+  const add = useServerFn(addFavorite);
+  const remove = useServerFn(removeFavorite);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(FAV_KEY);
-      if (raw) setFavorites(new Set(JSON.parse(raw)));
-    } catch {
-      // ignore
+    if (!authReady) return;
+    if (!authed) {
+      setFavorites(new Set());
+      return;
     }
-  }, []);
+    let active = true;
+    getFavorites()
+      .then((rows) => {
+        if (active) setFavorites(new Set(rows.map((row) => row.favorite.propertyId)));
+      })
+      .catch(() => {
+        if (active) setFavoriteError("Sign in again to load your favorites.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [authed, authReady, getFavorites]);
 
-  const toggle = (id) => {
+  const toggle = async (id) => {
+    if (!authed) {
+      setFavoriteError("Log in to save properties to your account.");
+      return;
+    }
+    setFavoriteError("");
+    const wasFavorite = favorites.has(id);
     setFavorites((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
+      if (wasFavorite) next.delete(id);
       else next.add(id);
-      try {
-        localStorage.setItem(FAV_KEY, JSON.stringify([...next]));
-      } catch {
-        // ignore
-      }
       return next;
     });
+    try {
+      if (wasFavorite) await remove({ data: { propertyId: id } });
+      else await add({ data: { propertyId: id } });
+    } catch (error) {
+      setFavorites((prev) => {
+        const next = new Set(prev);
+        if (wasFavorite) next.add(id);
+        else next.delete(id);
+        return next;
+      });
+      setFavoriteError(error instanceof Error ? error.message : "Unable to update favorite.");
+    }
   };
 
-  return { favorites, toggle };
+  return { favorites, favoriteError, toggle };
 }
 
 function parsePrice(input) {
@@ -110,11 +138,21 @@ function BrowsePage() {
   const navigate = useNavigate({ from: "/browse" });
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const { favorites, toggle: toggleFav } = useFavorites();
+  const authState = useAuth();
+  const {
+    favorites,
+    favoriteError,
+    toggle: toggleFav,
+  } = useFavorites(authState.authed, authState.ready);
   const roleState = useRole();
+  const getProperties = useServerFn(listPublishedProperties);
 
   const [chatOpen, setChatOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [serverProperties, setServerProperties] = useState([]);
+  const [totalProperties, setTotalProperties] = useState(0);
+  const [loadingProperties, setLoadingProperties] = useState(true);
+  const [propertyError, setPropertyError] = useState("");
 
   const [qDraft, setQDraft] = useState(search.q);
   const [typeDraft, setTypeDraft] = useState(search.type);
@@ -159,56 +197,63 @@ function BrowsePage() {
     setMenuOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    let active = true;
+    setLoadingProperties(true);
+    setPropertyError("");
+    getProperties({
+      data: {
+        location: search.q || undefined,
+        propertyType: search.type === "All" ? undefined : search.type,
+        minPrice: search.min || undefined,
+        maxPrice: search.max || undefined,
+        bedrooms: search.beds === "Any" ? undefined : parseInt(search.beds, 10),
+        sort: search.sort,
+        page: search.page,
+        pageSize: PAGE_SIZE,
+      },
+    })
+      .then((result) => {
+        if (!active) return;
+        setServerProperties(result.properties);
+        setTotalProperties(result.total);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setPropertyError(
+          error instanceof Error ? error.message : "Unable to load properties right now.",
+        );
+        setServerProperties([]);
+        setTotalProperties(0);
+      })
+      .finally(() => {
+        if (active) setLoadingProperties(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [
+    getProperties,
+    search.q,
+    search.type,
+    search.min,
+    search.max,
+    search.beds,
+    search.sort,
+    search.page,
+  ]);
+
   const setSearch = (patch) => {
     navigate({
       search: (prev) => ({ ...prev, ...patch }),
     });
   };
 
-  const filtered = useMemo(() => {
-    const q = search.q.trim().toLowerCase();
-
-    const list = properties.filter((p) => {
-      if (q) {
-        const haystack = `${p.location ?? ""} ${p.address ?? ""} ${p.title ?? ""}`.toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
-
-      if (
-        search.type !== "All" &&
-        String(p.category ?? "").toUpperCase() !== search.type.toUpperCase()
-      ) {
-        return false;
-      }
-
-      const price = parsePrice(p.price);
-      if (search.min && price < search.min) return false;
-      if (search.max && price > search.max) return false;
-
-      if (search.beds !== "Any") {
-        const need = parseInt(search.beds, 10);
-        if (!Number.isNaN(need) && (p.beds ?? 0) < need) return false;
-      }
-
-      return true;
-    });
-
-    switch (search.sort) {
-      case "price_asc":
-        return [...list].sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
-      case "price_desc":
-        return [...list].sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
-      case "beds":
-        return [...list].sort((a, b) => (b.beds ?? 0) - (a.beds ?? 0));
-      default:
-        return list;
-    }
-  }, [search.q, search.type, search.min, search.max, search.beds, search.sort]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const filtered = serverProperties;
+  const totalPages = Math.max(1, Math.ceil(totalProperties / PAGE_SIZE));
   const currentPage = Math.min(Math.max(1, search.page), totalPages);
   const startIdx = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+  const pageItems = filtered;
 
   const applySearch = () => {
     setSearch({
@@ -670,7 +715,7 @@ function BrowsePage() {
               {activeChips.length > 0 ? (
                 <>
                   <span className="text-xs text-on-surface-variant font-mono-data">
-                    {filtered.length} match{filtered.length === 1 ? "" : "es"}:
+                    {totalProperties} match{totalProperties === 1 ? "" : "es"}:
                   </span>
                   {activeChips.map((c) => (
                     <button
@@ -693,7 +738,7 @@ function BrowsePage() {
                 </>
               ) : (
                 <span className="text-xs text-on-surface-variant font-mono-data">
-                  Showing all {filtered.length} properties
+                  Showing all {totalProperties} properties
                 </span>
               )}
             </div>
@@ -719,7 +764,22 @@ function BrowsePage() {
             </div>
           </div>
 
-          {search.view === "grid" ? (
+          {favoriteError && (
+            <p className="mb-6 text-sm text-warning" role="status">
+              {favoriteError}
+            </p>
+          )}
+
+          {loadingProperties ? (
+            <div className="glass-panel rounded-3xl h-[400px] flex items-center justify-center text-on-surface-variant">
+              Loading properties…
+            </div>
+          ) : propertyError ? (
+            <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-3 text-center px-6">
+              <p className="font-bold text-lg">Properties are unavailable</p>
+              <p className="text-sm text-on-surface-variant">{propertyError}</p>
+            </div>
+          ) : search.view === "grid" ? (
             pageItems.length === 0 ? (
               <div className="glass-panel rounded-3xl h-[400px] flex flex-col items-center justify-center gap-3 text-on-surface-variant text-center px-6">
                 <p className="font-bold text-lg">No properties match your filters</p>
@@ -816,12 +876,13 @@ function BrowsePage() {
                           View Property
                         </Link>
 
-                        <a
-                          href={`mailto:${p.owner?.email}?subject=${encodeURIComponent("Inquiry about " + p.title)}`}
+                        <Link
+                          to="/property/$id"
+                          params={{ id: p.id }}
                           className="text-center bg-surface-container border border-border-muted text-on-surface-variant py-3 rounded-xl font-bold hover:bg-on-surface hover:text-background transition-all"
                         >
                           Contact Owner
-                        </a>
+                        </Link>
                       </div>
                     </div>
                   </article>
@@ -841,7 +902,7 @@ function BrowsePage() {
               <span className="text-on-surface font-bold">
                 {pageItems.length === 0 ? 0 : startIdx + 1}-{startIdx + pageItems.length}
               </span>{" "}
-              of {filtered.length} properties
+              of {totalProperties} properties
             </p>
 
             <nav

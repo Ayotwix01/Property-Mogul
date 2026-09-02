@@ -1,8 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 
 import { useState } from "react";
+import { z } from "zod";
+import { useServerFn } from "@tanstack/react-start";
+import { login } from "@/lib/auth.functions";
+import { startGoogleOAuth } from "@/lib/google-oauth.functions";
+
+const loginSearchSchema = z.object({ google: z.string().optional() });
 
 export const Route = createFileRoute("/login")({
+  validateSearch: loginSearchSchema,
   head: () => ({
     meta: [
       { title: "Login | Property Mogul" },
@@ -17,34 +24,52 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
+  const { google } = Route.useSearch();
   const navigate = useNavigate();
   const [emailOrUser, setEmailOrUser] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loggingIn, setLoggingIn] = useState(false);
+  const [error, setError] = useState("");
+  const loginUser = useServerFn(login);
+  const beginGoogle = useServerFn(startGoogleOAuth);
+  const [googleStarting, setGoogleStarting] = useState(false);
 
   const pwLength = password.length;
   const pwHasUpper = /[A-Z]/.test(password);
   const pwHasLower = /[a-z]/.test(password);
   const pwHasNumber = /[0-9]/.test(password);
   const pwValid = pwLength >= 8 && pwHasUpper && pwHasLower && pwHasNumber;
+  const googleError =
+    google === "account_exists"
+      ? "This Google email already has a password account. Sign in with your password instead."
+      : google
+        ? "Google sign-in could not be completed. Please try again."
+        : "";
 
   const handleLogin = (e) => {
     e.preventDefault();
     if (!pwValid || loggingIn) return;
     setLoggingIn(true);
+    setError("");
 
-    // Simulate login delay
-    setTimeout(() => {
+    const signIn = async () => {
+      let result;
       try {
+        result = await loginUser({ data: { email: emailOrUser, password } });
         localStorage.setItem("pm_authed", "1");
-        // If the user's email contains "owner" they get owner+seeker roles (dual-role demo)
-        // Otherwise just seeker
-        const role = emailOrUser.toLowerCase().includes("owner") ? "owner,seeker" : "seeker";
+        const role = result.roles
+          .map((value) => (value === "LANDLORD" ? "owner" : "seeker"))
+          .join(",");
         localStorage.setItem("pm_role", role);
         localStorage.setItem("pm_user_name", emailOrUser.split("@")[0]);
-      } catch {
-        // ignore
+        localStorage.setItem("pm_user_email", emailOrUser.trim().toLowerCase());
+      } catch (loginError) {
+        setError(
+          loginError instanceof Error ? loginError.message : "Unable to sign in. Please try again.",
+        );
+        setLoggingIn(false);
+        return;
       }
 
       const roles = (() => {
@@ -55,14 +80,32 @@ function LoginPage() {
         }
       })();
       const rList = roles.split(",").map((r) => r.trim());
-      if (rList.includes("owner")) {
+      if (result.roles.includes("ADMIN")) {
+        navigate({ to: "/admin" });
+      } else if (rList.includes("owner")) {
         navigate({ to: "/owner" });
       } else if (rList.includes("seeker")) {
         navigate({ to: "/seeker" });
       } else {
         navigate({ to: "/browse" });
       }
-    }, 800);
+    };
+    void signIn();
+  };
+
+  const handleGoogle = async () => {
+    if (googleStarting) return;
+    setGoogleStarting(true);
+    setError("");
+    try {
+      const result = await beginGoogle();
+      window.location.assign(result.authorizationUrl);
+    } catch (googleError) {
+      setError(
+        googleError instanceof Error ? googleError.message : "Unable to start Google sign-in.",
+      );
+      setGoogleStarting(false);
+    }
   };
 
   return (
@@ -234,6 +277,19 @@ function LoginPage() {
                 )}
               </button>
             </form>
+            <button
+              type="button"
+              onClick={handleGoogle}
+              disabled={googleStarting}
+              className="mt-5 w-full rounded-lg border border-border-muted py-3 font-semibold disabled:opacity-50"
+            >
+              {googleStarting ? "Connecting to Google…" : "Continue with Google"}
+            </button>
+            {(error || googleError) && (
+              <p role="alert" className="text-sm text-error mt-4">
+                {error || googleError}
+              </p>
+            )}
 
             <p className="text-center text-sm text-on-surface-variant">
               New to the platform?{" "}

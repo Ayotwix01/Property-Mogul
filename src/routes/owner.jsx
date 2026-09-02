@@ -1,10 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 
 import { AiChatWidget } from "@/components/ai-chat-widget";
 import { PageSkeleton, usePreload } from "@/components/skeleton";
-import { properties } from "@/lib/properties";
 import { useRole, switchRole } from "@/hooks/use-auth";
+import { listOwnProperties } from "@/lib/property.functions";
+import {
+  listReceivedInquiries,
+  listReceivedViewingRequests,
+  updateViewingStatus,
+} from "@/lib/communication.functions";
 
 export const Route = createFileRoute("/owner")({
   head: () => ({
@@ -29,70 +35,108 @@ function OwnerDashboard() {
   const ready = usePreload(400);
   const roleState = useRole();
   const navigate = useNavigate();
-  const [name, setName] = useState("Owner");
+  const [name] = useState("Owner");
   const [chatOpen, setChatOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [listings, setListings] = useState([]);
+  const [listingError, setListingError] = useState("");
+  const [inquiries, setInquiries] = useState([]);
+  const [inquiryError, setInquiryError] = useState("");
+  const [viewings, setViewings] = useState([]);
+  const [viewingError, setViewingError] = useState("");
+  const [updatingViewing, setUpdatingViewing] = useState("");
+  const getOwnProperties = useServerFn(listOwnProperties);
+  const getInquiries = useServerFn(listReceivedInquiries);
+  const getViewings = useServerFn(listReceivedViewingRequests);
+  const updateViewing = useServerFn(updateViewingStatus);
 
   // Role guard: redirect if not owner
   useEffect(() => {
-    if (ready && localStorage.getItem("pm_authed") !== "1") {
+    if (ready && roleState.ready && !roleState.isOwner) {
       navigate({ to: "/login" });
-    } else if (ready && roleState.isOwner === false) {
-      navigate({ to: "/role-select" });
     }
-  }, [ready, roleState, navigate]);
+  }, [ready, roleState.ready, roleState.isOwner, navigate]);
+
+  const verificationApproved = roleState.trustStatus === "VERIFIED";
 
   useEffect(() => {
+    if (!ready || !roleState.ready || !roleState.isOwner) return;
+    let active = true;
+    getOwnProperties()
+      .then((result) => {
+        if (active) setListings(result);
+      })
+      .catch((error) => {
+        if (active) {
+          setListingError(error instanceof Error ? error.message : "Unable to load your listings.");
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [getOwnProperties, ready, roleState.isOwner, roleState.ready]);
+
+  useEffect(() => {
+    if (!ready || !roleState.ready || !roleState.isOwner) return;
+    let active = true;
+    getInquiries()
+      .then((result) => active && setInquiries(result))
+      .catch(
+        (error) =>
+          active &&
+          setInquiryError(error instanceof Error ? error.message : "Unable to load inquiries."),
+      );
+    return () => {
+      active = false;
+    };
+  }, [getInquiries, ready, roleState.isOwner, roleState.ready]);
+
+  useEffect(() => {
+    if (!ready || !roleState.ready || !roleState.isOwner) return;
+    getViewings()
+      .then(setViewings)
+      .catch((error) =>
+        setViewingError(
+          error instanceof Error ? error.message : "Unable to load viewing requests.",
+        ),
+      );
+  }, [getViewings, ready, roleState.isOwner, roleState.ready]);
+
+  const handleViewingStatus = async (viewingId, status) => {
+    setUpdatingViewing(viewingId);
     try {
-      const n = localStorage.getItem("pm_user_name");
-      if (n) setName(String(n).split(" ")[0]);
-    } catch {
-      // ignore
+      await updateViewing({ data: { viewingId, status } });
+      setViewings((current) =>
+        current.map((item) => {
+          const viewing = item.viewing || item;
+          return viewing.id === viewingId ? { ...item, viewing: { ...viewing, status } } : item;
+        }),
+      );
+    } catch (error) {
+      setViewingError(error instanceof Error ? error.message : "Unable to update viewing request.");
+    } finally {
+      setUpdatingViewing("");
     }
-  }, []);
+  };
 
   if (!ready) return <PageSkeleton />;
 
   // Still show loading while checking role
-  if (roleState.roles.length > 0 && !roleState.isOwner) return <PageSkeleton />;
-
-  const listings = properties.slice(0, 5);
-  const inquiries = [
-    {
-      who: "Adaobi N.",
-      when: "2h ago",
-      msg: "Is Azure Heights still available for viewing this weekend?",
-      property: properties[0],
-    },
-    {
-      who: "Tunde A.",
-      when: "5h ago",
-      msg: "Can I negotiate the price on Marina Bay?",
-      property: properties[1],
-    },
-    {
-      who: "Ifeoma C.",
-      when: "1d ago",
-      msg: "Requesting a virtual tour for the Ikoyi Penthouse.",
-      property: properties[2],
-    },
-  ];
+  if (!roleState.ready || !roleState.isOwner) return <PageSkeleton />;
 
   const stats = [
-    { label: "Active Listings", value: listings.length, delta: "+2 this week" },
-    { label: "Portfolio Value", value: "₦482M", delta: "+4.1%" },
-    { label: "Open Inquiries", value: inquiries.length, delta: "3 new" },
-    { label: "Occupancy", value: "92%", delta: "Healthy" },
-  ];
-
-  const revenueMonths = [
-    { m: "Jan", h: 40 },
-    { m: "Feb", h: 55 },
-    { m: "Mar", h: 48 },
-    { m: "Apr", h: 70 },
-    { m: "May", h: 62 },
-    { m: "Jun", h: 85 },
-    { m: "Jul", h: 95 },
+    {
+      label: "Active Listings",
+      value: listings.filter((item) => item.status === "PUBLISHED").length,
+      delta: "Database total",
+    },
+    { label: "Portfolio Value", value: "—", delta: "Not calculated" },
+    {
+      label: "Open Inquiries",
+      value: inquiries.filter((item) => (item.inquiry || item).status !== "CLOSED").length,
+      delta: "Database total",
+    },
+    { label: "Occupancy", value: "—", delta: "Coming soon" },
   ];
 
   return (
@@ -266,17 +310,19 @@ function OwnerDashboard() {
                 Welcome back, <span className="primary-gradient-text">{name}</span>
               </h1>
               <p className="text-on-surface-variant max-w-xl">
-                Your portfolio grew 4.1% this month. Three new inquiries need your attention.
+                Manage your listings and verification status from one place.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3 shrink-0">
               <Link
-                to="/browse"
+                to={verificationApproved ? "/owner/listings/new" : "/profile"}
                 className="inline-flex items-center gap-2 bg-primary-container text-on-primary-container px-5 py-3 rounded-xl font-bold active:scale-95 transition-transform"
               >
-                <span className="material-symbols-outlined">add</span>
-                New listing
+                <span className="material-symbols-outlined">
+                  {verificationApproved ? "add" : "verified_user"}
+                </span>
+                {verificationApproved ? "New listing" : "Verify to list"}
               </Link>
               <Link
                 to="/browse"
@@ -287,6 +333,26 @@ function OwnerDashboard() {
             </div>
           </div>
         </section>
+
+        {!verificationApproved && (
+          <section className="mb-10 rounded-2xl border border-warning/30 bg-warning/10 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="font-display font-bold text-lg">
+                Complete verification before listing
+              </h2>
+              <p className="text-sm text-on-surface-variant mt-1">
+                Landlords must pass identity, selfie/liveness, and ownership or authority checks
+                before a listing can be published.
+              </p>
+            </div>
+            <Link
+              to="/profile"
+              className="shrink-0 rounded-xl border border-warning/40 px-4 py-2.5 text-sm font-bold text-warning hover:bg-warning/10"
+            >
+              Open verification
+            </Link>
+          </section>
+        )}
 
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
           {stats.map((s) => (
@@ -309,21 +375,15 @@ function OwnerDashboard() {
           <div className="lg:col-span-2 bg-surface-container-lowest border border-border-muted rounded-2xl p-6">
             <div className="flex items-end justify-between mb-6 gap-4">
               <div>
-                <h2 className="font-display font-bold text-xl sm:text-2xl">Revenue trend</h2>
-                <p className="text-sm text-on-surface-variant">Last 7 months · ₦ millions</p>
+                <h2 className="font-display font-bold text-xl sm:text-2xl">Performance</h2>
+                <p className="text-sm text-on-surface-variant">
+                  Inquiry and transaction metrics will appear here when those workflows are
+                  connected.
+                </p>
               </div>
-              <span className="text-success-cyan font-mono-data text-sm">▲ 18.2%</span>
             </div>
-            <div className="flex items-end gap-3 h-48">
-              {revenueMonths.map((r) => (
-                <div key={r.m} className="flex-1 flex flex-col items-center gap-2">
-                  <div
-                    className="w-full rounded-t-lg bg-gradient-to-t from-primary-container to-secondary"
-                    style={{ height: `${r.h}%` }}
-                  />
-                  <span className="text-[10px] font-mono-data text-on-surface-variant">{r.m}</span>
-                </div>
-              ))}
+            <div className="h-48 rounded-xl border border-dashed border-border-muted flex items-center justify-center text-sm text-on-surface-variant text-center px-6">
+              No performance data yet.
             </div>
           </div>
 
@@ -333,28 +393,85 @@ function OwnerDashboard() {
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-bold text-xl">Recent inquiries</h2>
-              <span className="text-xs text-primary-container">{inquiries.length} new</span>
+              <span className="text-xs text-on-surface-variant">{inquiries.length} total</span>
             </div>
-            <div className="space-y-4">
-              {inquiries.map((i) => (
-                <div key={i.who} className="flex gap-3">
-                  <div className="w-9 h-9 shrink-0 rounded-full bg-primary-container/15 border border-primary-container/30 grid place-items-center text-primary-container font-bold text-sm">
-                    {i.who.charAt(0)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-bold text-sm truncate">{i.who}</p>
-                      <span className="text-[10px] text-on-surface-variant shrink-0">{i.when}</span>
+            {inquiryError ? (
+              <p className="text-sm text-error">{inquiryError}</p>
+            ) : inquiries.length === 0 ? (
+              <div className="min-h-48 rounded-xl border border-dashed border-border-muted flex items-center justify-center text-sm text-on-surface-variant text-center px-6">
+                No inquiries yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {inquiries.slice(0, 5).map((inquiry) => (
+                  <div key={inquiry.id} className="rounded-xl border border-border-muted p-3">
+                    <div className="flex items-center justify-between gap-3 text-xs text-on-surface-variant">
+                      <span>Property inquiry</span>
+                      <span>{(inquiry.inquiry || inquiry).status}</span>
                     </div>
-                    <p className="text-xs text-on-surface-variant line-clamp-2">{i.msg}</p>
-                    <p className="text-[10px] text-primary-container mt-1 truncate">
-                      Re: {i.property.title}
+                    <p className="mt-2 text-sm line-clamp-2">
+                      {(inquiry.inquiry || inquiry).message}
                     </p>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
+        </section>
+
+        <section className="mb-10 rounded-2xl border border-border-muted bg-surface-container-lowest p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-display font-bold text-xl">Viewing requests</h2>
+              <p className="text-sm text-on-surface-variant">
+                Review and respond to scheduled viewings.
+              </p>
+            </div>
+            <span className="text-xs text-on-surface-variant">{viewings.length} total</span>
+          </div>
+          {viewingError && <p className="mb-3 text-sm text-error">{viewingError}</p>}
+          {viewings.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-border-muted p-6 text-sm text-on-surface-variant">
+              No viewing requests yet.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {viewings.map((item) => {
+                const viewing = item.viewing || item;
+                return (
+                  <div
+                    key={viewing.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-muted p-4"
+                  >
+                    <div>
+                      <p className="font-bold">{item.property?.title || "Property viewing"}</p>
+                      <p className="text-sm text-on-surface-variant">
+                        {item.counterpart?.displayName || "Seeker"} ·{" "}
+                        {new Date(viewing.requestedDate).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold uppercase text-primary-container">
+                        {viewing.status}
+                      </span>
+                      {viewing.status === "REQUESTED" &&
+                        ["ACCEPTED", "DECLINED"].map((status) => (
+                          <button
+                            key={status}
+                            type="button"
+                            disabled={updatingViewing === viewing.id}
+                            onClick={() => handleViewingStatus(viewing.id, status)}
+                            className="rounded-lg border border-border-muted px-3 py-1.5 text-xs font-bold hover:border-primary-container"
+                          >
+                            {status === "CONFIRMED" ? "Accept" : "Decline"}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <section id="listings" className="mb-10">
@@ -362,15 +479,17 @@ function OwnerDashboard() {
             <div>
               <h2 className="font-display font-bold text-2xl sm:text-3xl">My listings</h2>
               <p className="text-sm text-on-surface-variant">
-                Manage, edit, and track performance.
+                Manage your draft and published properties.
               </p>
             </div>
             <Link
-              to="/browse"
+              to={verificationApproved ? "/owner/listings/new" : "/profile"}
               className="inline-flex items-center gap-2 bg-primary-container/10 border border-primary-container/30 text-primary-container px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary-container hover:text-on-primary-container transition-colors"
             >
-              <span className="material-symbols-outlined">add</span>
-              Add
+              <span className="material-symbols-outlined">
+                {verificationApproved ? "add" : "verified_user"}
+              </span>
+              {verificationApproved ? "Add" : "Verify"}
             </Link>
           </div>
 
@@ -383,17 +502,34 @@ function OwnerDashboard() {
               <span className="text-right">Actions</span>
             </div>
 
-            {listings.map((p, i) => (
+            {listingError && <div className="px-6 py-5 text-sm text-error">{listingError}</div>}
+
+            {!listingError && listings.length === 0 && (
+              <div className="px-6 py-12 text-center text-on-surface-variant">
+                <p className="font-bold text-lg text-on-surface">No listings yet</p>
+                <p className="text-sm mt-1">
+                  Create a draft after your landlord verification is complete.
+                </p>
+              </div>
+            )}
+
+            {listings.map((p) => (
               <div
                 key={p.id}
                 className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_1fr_1fr_1fr_auto] gap-4 px-4 sm:px-6 py-4 border-b border-border-muted/60 last:border-0 items-center hover:bg-surface-container/40 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <img
-                    src={p.images?.[0]}
-                    alt={p.title}
-                    className="w-14 h-14 rounded-xl object-cover shrink-0"
-                  />
+                  {p.images?.[0] ? (
+                    <img
+                      src={p.images[0]}
+                      alt={p.title}
+                      className="w-14 h-14 rounded-xl object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl bg-surface-container shrink-0 grid place-items-center text-on-surface-variant">
+                      <span className="material-symbols-outlined">home_work</span>
+                    </div>
+                  )}
                   <div className="min-w-0">
                     <p className="font-bold truncate">{p.title}</p>
                     <p className="text-xs text-on-surface-variant truncate">{p.location}</p>
@@ -401,17 +537,17 @@ function OwnerDashboard() {
                 </div>
 
                 <div className="text-sm font-mono-data text-primary-container">{p.price}</div>
-                <div className="text-sm font-mono-data">{(180 + i * 47).toLocaleString()}</div>
+                <div className="text-sm font-mono-data text-on-surface-variant">—</div>
 
                 <div>
                   <span
                     className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${
-                      i % 3 === 0
+                      p.status === "PUBLISHED"
                         ? "text-success-cyan border-success-cyan/40 bg-success-cyan/10"
                         : "text-primary-container border-primary-container/40 bg-primary-container/10"
                     }`}
                   >
-                    {i % 3 === 0 ? "Active" : "In review"}
+                    {p.status}
                   </span>
                 </div>
 
@@ -423,13 +559,14 @@ function OwnerDashboard() {
                   >
                     <span className="material-symbols-outlined">visibility</span>
                   </Link>
-                  <button
-                    type="button"
+                  <Link
+                    to="/owner/listings/$id/edit"
+                    params={{ id: p.id }}
                     className="p-2 rounded-lg border border-border-muted hover:border-primary-container transition-colors"
-                    aria-label="Edit"
+                    aria-label={`Edit ${p.title}`}
                   >
                     <span className="material-symbols-outlined">edit</span>
-                  </button>
+                  </Link>
                 </div>
               </div>
             ))}

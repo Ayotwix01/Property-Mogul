@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1788120108430,
+      "tag": "0000_tan_toad_men",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788120959793,
+      "tag": "0001_conscious_cassandra_nova",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788121256283,
+      "tag": "0002_busy_firebrand",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788121714028,
+      "tag": "0003_open_human_robot",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788160657375,
+      "tag": "0004_opposite_thor_girl",
+      "breakpoints": true
+    }
+  ]
+}
