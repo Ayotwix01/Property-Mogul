@@ -23,16 +23,14 @@ export const Route = createFileRoute("/")({
       },
       {
         property: "og:image",
-        content:
-          "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+        content: "/images/hero-ikoyi-penthouse.jpg",
       },
       { property: "og:url", content: "/" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Property Mogul | Modern Real Estate Marketplace" },
       {
         name: "twitter:image",
-        content:
-          "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+        content: "/images/hero-ikoyi-penthouse.jpg",
       },
     ],
     links: [{ rel: "canonical", href: "/" }],
@@ -55,8 +53,7 @@ const showcaseBuildings = [
     beds: 4,
     baths: 4,
     sqft: "420 m²",
-    image:
-      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=80",
+    image: "/images/showcase-lekki-duplex.jpg",
     tag: { label: "Featured", tone: "primary" },
   },
   {
@@ -67,8 +64,7 @@ const showcaseBuildings = [
     beds: 5,
     baths: 5,
     sqft: "560 m²",
-    image:
-      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80",
+    image: "/images/showcase-maitama-villa.jpg",
     tag: { label: "Verified", tone: "success" },
   },
 ];
@@ -277,10 +273,15 @@ function Landing() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen((v) => !v)}
-              aria-label="Menu"
-              className="md:hidden w-9 h-9 rounded-lg border border-border-muted flex items-center justify-center"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              className="md:hidden w-9 h-9 rounded-lg border border-border-muted flex items-center justify-center hover:bg-white/5 transition-colors"
             >
-              <span className="material-symbols-outlined">menu</span>
+              <span
+                key={mobileMenuOpen ? "open" : "closed"}
+                className="material-symbols-outlined transition-transform duration-200"
+              >
+                {mobileMenuOpen ? "close" : "menu"}
+              </span>
             </button>
           </div>
         </div>
@@ -409,7 +410,7 @@ function Landing() {
                 <img
                   alt="Modern property"
                   className="w-full h-full object-cover"
-                  src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+                  src="/images/hero-ikoyi-penthouse.jpg"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
 
