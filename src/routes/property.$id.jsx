@@ -61,6 +61,13 @@ function PropertyDetailPage() {
   const { property } = Route.useLoaderData();
   const navigate = useNavigate();
   const authState = useAuth();
+
+  // Auth gate: viewing a full listing detail requires a signed-in account.
+  useEffect(() => {
+    if (authState.ready && !authState.authed) {
+      navigate({ to: "/login", search: { next: `/property/${property?.id ?? ""}` } });
+    }
+  }, [authState.ready, authState.authed, navigate, property?.id]);
   const sendInquiry = useServerFn(createInquiry);
   const reportProperty = useServerFn(createReport);
   const startPayment = useServerFn(createContactPayment);

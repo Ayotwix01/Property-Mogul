@@ -13,7 +13,7 @@ function GoogleCompletionPage() {
   const { state } = Route.useSearch();
   const navigate = useNavigate();
   const complete = useServerFn(completeGoogleSignup);
-  const [role, setRole] = useState("SEEKER");
+  const [role, setRole] = useState(null);
   const [both, setBoth] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
@@ -22,6 +22,11 @@ function GoogleCompletionPage() {
   const submit = async (event) => {
     event.preventDefault();
     if (!termsAccepted || submitting) return;
+    const chosenRoles = both ? ["SEEKER", "LANDLORD"] : role ? [role] : null;
+    if (!chosenRoles) {
+      setError("Choose how you’ll use Property Mogul before continuing.");
+      return;
+    }
     setSubmitting(true);
     setError("");
     try {
@@ -68,7 +73,7 @@ function GoogleCompletionPage() {
                 type="radio"
                 name="role"
                 value={value}
-                checked={role === value && !both}
+                checked={role === value}
                 onChange={() => {
                   setRole(value);
                   setBoth(false);

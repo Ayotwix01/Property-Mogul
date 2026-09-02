@@ -6,7 +6,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { login } from "@/lib/auth.functions";
 import { startGoogleOAuth } from "@/lib/google-oauth.functions";
 
-const loginSearchSchema = z.object({ google: z.string().optional() });
+const loginSearchSchema = z.object({
+  google: z.string().optional(),
+  next: z.string().optional(),
+});
 
 export const Route = createFileRoute("/login")({
   validateSearch: loginSearchSchema,
@@ -24,7 +27,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const { google } = Route.useSearch();
+  const { google, next } = Route.useSearch();
   const navigate = useNavigate();
   const [emailOrUser, setEmailOrUser] = useState("");
   const [password, setPassword] = useState("");
@@ -40,12 +43,24 @@ function LoginPage() {
   const pwHasLower = /[a-z]/.test(password);
   const pwHasNumber = /[0-9]/.test(password);
   const pwValid = pwLength >= 8 && pwHasUpper && pwHasLower && pwHasNumber;
-  const googleError =
-    google === "account_exists"
-      ? "This Google email already has a password account. Sign in with your password instead."
-      : google
-        ? "Google sign-in could not be completed. Please try again."
-        : "";
+  const googleError = (() => {
+    switch (google) {
+      case "account_exists":
+        return "This Google email already has a password account. Sign in with your password instead.";
+      case "invalid_request":
+        return "Your Google sign-in session expired or was opened in a different browser. Please click Continue with Google once and complete the consent on the same screen.";
+      case "expired_request":
+        return "Your Google sign-in session expired before it completed. Please try again.";
+      case "exchange_failed":
+        return "Google rejected the sign-in (the authorization code was invalid or already used). Please start the Google sign-in again from this page.";
+      case "identity_failed":
+        return "We could not read your Google profile after sign-in. Please try again.";
+      case "unverified_email":
+        return "Your Google account does not have a verified email. Property Mogul requires a verified email to sign in.";
+      default:
+        return google ? "Google sign-in could not be completed. Please try again." : "";
+    }
+  })();
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -80,7 +95,21 @@ function LoginPage() {
         }
       })();
       const rList = roles.split(",").map((r) => r.trim());
-      if (result.roles.includes("ADMIN")) {
+      // Honour ?next=... only when it is a safe internal path (starts with "/"
+      // and does not point at /login again, which would loop).
+      const safeNext =
+        typeof next === "string" &&
+        next.startsWith("/") &&
+        !next.startsWith("//") &&
+        !next.startsWith("/login") &&
+        !next.startsWith("/signup") &&
+        !next.startsWith("/auth/")
+          ? next
+          : null;
+
+      if (safeNext) {
+        navigate({ to: safeNext });
+      } else if (result.roles.includes("ADMIN")) {
         navigate({ to: "/admin" });
       } else if (rList.includes("owner")) {
         navigate({ to: "/owner" });

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { currentUser, logout as logoutUser } from "@/lib/auth.functions";
 
@@ -9,6 +10,7 @@ export function useAuth() {
   const [ready, setReady] = useState(false);
   const getUser = useServerFn(currentUser);
   const signOutUser = useServerFn(logoutUser);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
     let active = true;
@@ -32,7 +34,7 @@ export function useAuth() {
     return () => {
       active = false;
     };
-  }, [getUser]);
+  }, [getUser, pathname]);
 
   const signOut = async () => {
     try {
@@ -99,6 +101,7 @@ export function useRole() {
     ready: false,
   });
   const getUser = useServerFn(currentUser);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
     let active = true;
@@ -137,7 +140,7 @@ export function useRole() {
     return () => {
       active = false;
     };
-  }, [getUser]);
+  }, [getUser, pathname]);
 
   return roleState;
 }

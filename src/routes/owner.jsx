@@ -3,8 +3,11 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { AiChatWidget } from "@/components/ai-chat-widget";
+import { BrandLogo } from "@/components/logo";
 import { PageSkeleton, usePreload } from "@/components/skeleton";
-import { useRole, switchRole } from "@/hooks/use-auth";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { UserMenu } from "@/components/user-menu";
+import { useAuth, useRole, switchRole } from "@/hooks/use-auth";
 import { listOwnProperties } from "@/lib/property.functions";
 import {
   listReceivedInquiries,
@@ -33,9 +36,11 @@ export const Route = createFileRoute("/owner")({
 
 function OwnerDashboard() {
   const ready = usePreload(400);
+  const authState = useAuth();
+  const { signOut } = authState;
   const roleState = useRole();
   const navigate = useNavigate();
-  const [name] = useState("Owner");
+  const name = authState.name || "Owner";
   const [chatOpen, setChatOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [listings, setListings] = useState([]);
@@ -144,8 +149,11 @@ function OwnerDashboard() {
       <header className="fixed top-0 inset-x-0 z-50 bg-surface-glass backdrop-blur-xl border-b border-border-muted">
         <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-4 px-5 md:px-16 py-4">
           <div className="flex items-center gap-4 sm:gap-8 min-w-0">
-            <Link to="/" className="font-display font-bold text-primary">
-              Property Mogul
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
+              <BrandLogo size={28} className="sm:w-8 sm:h-8" />
+              <span className="font-display font-bold text-base sm:text-lg text-primary group-hover:text-primary-container transition-colors">
+                Property Mogul
+              </span>
             </Link>
             <nav className="hidden md:flex items-center gap-6">
               <Link to="/owner" className="text-primary font-bold">
@@ -197,6 +205,7 @@ function OwnerDashboard() {
             >
               <span className="material-symbols-outlined">smart_toy</span>
             </button>
+            <ThemeToggle />
 
             <button
               onClick={() => setMenuOpen(true)}
@@ -207,8 +216,8 @@ function OwnerDashboard() {
               <span className="material-symbols-outlined">menu</span>
             </button>
 
-            <div className="hidden md:grid w-9 h-9 rounded-full bg-gradient-to-br from-primary-container to-secondary place-items-center text-on-primary-container font-bold text-sm">
-              {name.charAt(0).toUpperCase()}
+            <div className="hidden md:block">
+              <UserMenu />
             </div>
           </div>
         </div>
@@ -269,6 +278,34 @@ function OwnerDashboard() {
               </a>
             </nav>
 
+            {/* Account actions in mobile menu */}
+            <div className="mt-2 pt-4 border-t border-border-muted flex flex-col gap-1">
+              <Link
+                to="/profile"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 py-2 text-on-surface-variant hover:text-primary transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">person</span>
+                Profile
+              </Link>
+              <Link
+                to="/messages"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 py-2 text-on-surface-variant hover:text-primary transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">chat</span>
+                Messages
+              </Link>
+              <Link
+                to="/favorites"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 py-2 text-on-surface-variant hover:text-primary transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">favorite</span>
+                Saved
+              </Link>
+            </div>
+
             {/* Role switch in mobile menu */}
             {roleState.isBoth && (
               <div className="mt-2 pt-4 border-t border-border-muted">
@@ -286,6 +323,30 @@ function OwnerDashboard() {
                 </button>
               </div>
             )}
+
+            <div className="mt-2 pt-4 border-t border-border-muted">
+              <button
+                onClick={async () => {
+                  setMenuOpen(false);
+                  await signOut();
+                  try {
+                    localStorage.removeItem("pm_authed");
+                    localStorage.removeItem("pm_user_name");
+                    localStorage.removeItem("pm_user_email");
+                    localStorage.removeItem("pm_role");
+                    localStorage.removeItem("pm_active_role");
+                  } catch {
+                    /* noop */
+                  }
+                  navigate({ to: "/" });
+                }}
+                className="flex items-center gap-3 py-3 px-3 rounded-lg text-error hover:bg-white/5 transition-colors w-full text-left"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-base">logout</span>
+                Sign out
+              </button>
+            </div>
           </div>
         </div>
       )}

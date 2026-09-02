@@ -164,8 +164,36 @@ export async function handleGoogleCallback(request) {
       .update(oauthStates)
       .set({ usedAt: new Date() })
       .where(eq(oauthStates.id, oauthState.id));
+
+    // Confirm the linked account is still ACTIVE before creating a session.
+    const [linkedUser] = await database
+      .select({ status: users.status })
+      .from(users)
+      .where(eq(users.id, account.userId))
+      .limit(1);
+    if (!linkedUser || linkedUser.status !== "ACTIVE") {
+      return callbackRedirect(request, "/login?google=account_disabled");
+    }
+
+    const linkedRoles = await database
+      .select({ role: userRoles.role })
+      .from(userRoles)
+      .where(eq(userRoles.userId, account.userId));
+    const roleList = linkedRoles.map(({ role }) => role);
     await createSession(database, account.userId);
-    return callbackRedirect(request, "/browse");
+
+    // Mirror src/routes/login.jsx role-aware routing.
+    let dest = "/browse";
+    if (roleList.includes("ADMIN")) {
+      dest = "/admin";
+    } else if (roleList.includes("LANDLORD") && roleList.includes("SEEKER")) {
+      dest = "/owner";
+    } else if (roleList.includes("LANDLORD")) {
+      dest = "/owner";
+    } else if (roleList.includes("SEEKER")) {
+      dest = "/seeker";
+    }
+    return callbackRedirect(request, dest);
   }
 
   const [existingUser] = await database

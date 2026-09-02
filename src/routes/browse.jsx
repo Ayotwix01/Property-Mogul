@@ -147,6 +147,13 @@ function BrowsePage() {
   const roleState = useRole();
   const getProperties = useServerFn(listPublishedProperties);
 
+  // Auth gate: property browsing requires a signed-in account.
+  useEffect(() => {
+    if (authState.ready && !authState.authed) {
+      navigate({ to: "/login", search: { next: "/browse" } });
+    }
+  }, [authState.ready, authState.authed, navigate]);
+
   const [chatOpen, setChatOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [serverProperties, setServerProperties] = useState([]);
