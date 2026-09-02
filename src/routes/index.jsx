@@ -568,27 +568,53 @@ function Landing() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:auto-rows-[280px]">
-              <div className="md:col-span-2 glass-panel p-8 rounded-3xl flex flex-col justify-end relative overflow-hidden group">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:auto-rows-[300px]">
+              <div className="md:col-span-2 glass-panel p-8 rounded-3xl flex flex-col justify-between relative overflow-hidden group">
                 <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-primary-container/20 blur-[80px] group-hover:bg-primary-container/30 transition-all" />
-                <h3 className="text-2xl text-primary mb-2">Verified Listings</h3>
-                <p className="text-on-surface-variant max-w-md">
-                  Every property and user on our platform undergoes a rigorous verification process.
-                </p>
+                <div className="relative z-10 flex items-start justify-between gap-3">
+                  <div className="w-14 h-14 rounded-2xl bg-primary-container/15 border border-primary-container/30 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary-container text-2xl">
+                      verified_user
+                    </span>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-success-cyan/15 border border-success-cyan/30 text-success-cyan text-xs font-mono-data uppercase tracking-widest flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-success-cyan animate-pulse" />
+                    100% verified
+                  </span>
+                </div>
+                <div className="relative z-10">
+                  <h3 className="text-2xl text-primary mb-2">Verified Listings</h3>
+                  <p className="text-on-surface-variant max-w-md">
+                    Every property and user on our platform undergoes a rigorous verification
+                    process.
+                  </p>
+                </div>
               </div>
 
-              <div className="glass-panel p-8 rounded-3xl flex flex-col justify-end">
-                <h3 className="text-2xl text-primary mb-2">Rapid Search</h3>
-                <p className="text-on-surface-variant">
-                  Find exactly what you're looking for with AI-driven filtering.
-                </p>
+              <div className="glass-panel p-8 rounded-3xl flex flex-col justify-between relative overflow-hidden group">
+                <div className="relative z-10 w-14 h-14 rounded-2xl bg-tertiary-container/15 border border-tertiary-container/30 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-tertiary-container text-2xl">
+                    travel_explore
+                  </span>
+                </div>
+                <div className="relative z-10">
+                  <h3 className="text-2xl text-primary mb-2">Rapid Search</h3>
+                  <p className="text-on-surface-variant">
+                    Find exactly what you're looking for with AI-driven filtering.
+                  </p>
+                </div>
               </div>
 
-              <div className="glass-panel p-8 rounded-3xl flex flex-col justify-end">
-                <h3 className="text-2xl text-primary mb-2">Direct Connection</h3>
-                <p className="text-on-surface-variant">
-                  Communicate directly, arrange viewings, and finalize deals.
-                </p>
+              <div className="glass-panel p-8 rounded-3xl flex flex-col justify-between relative overflow-hidden group">
+                <div className="relative z-10 w-14 h-14 rounded-2xl bg-secondary/15 border border-secondary/30 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-secondary text-2xl">forum</span>
+                </div>
+                <div className="relative z-10">
+                  <h3 className="text-2xl text-primary mb-2">Direct Connection</h3>
+                  <p className="text-on-surface-variant">
+                    Communicate directly, arrange viewings, and finalize deals.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -606,28 +632,41 @@ function Landing() {
             <div className="space-y-12 relative">
               <div className="absolute left-[24px] md:left-1/2 top-0 bottom-0 w-[2px] bg-gradient-to-b from-primary-container/50 via-secondary/50 to-transparent md:-translate-x-1/2" />
 
-              {[1, 2, 3].map((n) => (
+              {[
+                {
+                  step: 1,
+                  title: "Create Profile",
+                  desc: "Sign up and verify your identity to build trust.",
+                  icon: "person_add",
+                  color: "primary-container",
+                },
+                {
+                  step: 2,
+                  title: "List or Search",
+                  desc: "Owners list properties; seekers filter to find matches.",
+                  icon: "manage_search",
+                  color: "secondary",
+                },
+                {
+                  step: 3,
+                  title: "Connect & Close",
+                  desc: "Communicate directly, arrange viewings, and finalize deals.",
+                  icon: "handshake",
+                  color: "primary-container",
+                },
+              ].map((item) => (
                 <div
-                  key={n}
-                  className="relative flex flex-col md:flex-row items-center gap-8 md:gap-24"
+                  key={item.step}
+                  className="relative flex flex-col md:flex-row items-center gap-6 md:gap-10"
                 >
                   <div
-                    className={`z-10 w-12 h-12 rounded-full ${n === 2 ? "bg-secondary text-on-secondary" : "bg-primary-container text-on-primary"} flex items-center justify-center font-bold border-4 border-background`}
+                    className={`z-10 w-14 h-14 rounded-full ${item.color === "secondary" ? "bg-secondary text-on-secondary" : "bg-primary-container text-on-primary"} flex items-center justify-center border-4 border-background shadow-lg`}
                   >
-                    {" "}
-                    {n}{" "}
+                    <span className="material-symbols-outlined text-2xl">{item.icon}</span>
                   </div>
-                  <div className="flex-1 md:text-left text-left">
-                    <h4 className="text-primary font-bold text-lg">
-                      {n === 1 ? "Create Profile" : n === 2 ? "List or Search" : "Connect & Close"}
-                    </h4>
-                    <p className="text-on-surface-variant text-sm mt-1">
-                      {n === 1
-                        ? "Sign up and verify your identity."
-                        : n === 2
-                          ? "Owners list properties; seekers filter to find matches."
-                          : "Communicate directly, arrange viewings, and finalize deals."}
-                    </p>
+                  <div className="glass-panel p-6 rounded-2xl flex-1">
+                    <h4 className="text-primary font-bold text-lg">{item.title}</h4>
+                    <p className="text-on-surface-variant text-sm mt-1">{item.desc}</p>
                   </div>
                 </div>
               ))}
